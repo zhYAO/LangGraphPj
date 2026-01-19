@@ -3,11 +3,12 @@ import { createClient } from '@supabase/supabase-js';
 
 // 初始化 Supabase 客户端（用于服务端鉴权）
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!;
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY!;
+// const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Cookie 名称
-const COOKIE_NAME = 'access-token';
+const COOKIE_NAME = 'sb-access-token';
 
 /**
  * 认证用户信息接口
@@ -22,8 +23,8 @@ export interface AuthUser {
  * 认证结果接口
  */
 export interface AuthResult {
-  user: AuthUser | null;
-  token: string | null;
+  user?: AuthUser | null;
+  token?: string | null;
   client: any | null;
   error?: string;
 }
@@ -59,7 +60,8 @@ export async function authenticateRequest(request: NextRequest): Promise<AuthRes
     }
 
     // 3. 验证 token 并获取用户信息
-    const { data, error } = await supabase.auth.getUser(token);
+    const { data, error } = await supabase.auth.getUser();
+    console.log("🚀 ~ authenticateRequest ~ data:", data)
 
     if (error || !data.user) {
       return {
@@ -74,7 +76,7 @@ export async function authenticateRequest(request: NextRequest): Promise<AuthRes
     const authenticatedClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: {
         headers: {
-          Authorization: `Bearer ${token}`,
+          // Authorization: `Bearer ${token}`,
         },
       },
     });
@@ -82,11 +84,11 @@ export async function authenticateRequest(request: NextRequest): Promise<AuthRes
     // 5. 返回认证结果
     return {
       user: {
-        id: data.user.id,
-        email: data.user.email || '',
-        ...data.user.user_metadata
+        id: 'mockUserId',
+        email: 'mock@example.com',
+        // ...data.user.user_metadata
       },
-      token,
+      token: 'mock token',
       client: authenticatedClient
     };
   } catch (error) {

@@ -15,7 +15,9 @@ import { useChatMessages } from '@/app/hooks/useChatMessages'
 import { useChatHistory } from '@/app/hooks/useChatHistory'
 import { useSendMessage } from '@/app/hooks/useSendMessage'
 import { Tool } from '@/app/components/ToolSelector'
-import { getEnabledTools } from '@/app/agent'
+
+// 导入工具配置
+import { getEnabledTools } from './agent/config/unified-tools.config';
 
 export default function ChatPage() {
   const chatInputRef = useRef<ChatInputHandle>(null)
@@ -23,7 +25,7 @@ export default function ChatPage() {
   // ==================== 模型配置 ====================
   // 从 localStorage 读取保存的模型,如果没有则使用默认值
   const [currentModel, setCurrentModel] = useState(() => {
-    if (typeof window !== 'undefined') {
+    if (window) {
       const savedModel = localStorage.getItem('selectedModel')
       return savedModel || 'google:gemini-3-flash-preview'
     }
@@ -134,7 +136,7 @@ export default function ChatPage() {
       />
 
       {/* 右侧主体内容区域 */}
-      <div className={`flex-1 flex z-10 overflow-hidden relative h-full`}>
+      <div className={`flex-1 flex z-10 overflow-hidden relative h-full flex-col`}>
         {/* 顶部导航栏 */}
         <ChatHeader />
 
