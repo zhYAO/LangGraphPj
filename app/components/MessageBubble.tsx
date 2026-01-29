@@ -61,86 +61,76 @@ export function MessageBubble({ message, index }: MessageBubbleProps) {
 
   return (
     <div
-      className={`flex gap-4 mb-8 w-full animate-fade-in-up ${
-        isUser ? 'justify-end' : ''
-      }`}
+      className={`flex w-full mb-6 ${isUser ? 'justify-end' : 'justify-start'} animate-slide-up`}
       style={{ animationDelay: `${index * 0.05}s` }}
     >
-      {!isUser && (
-        <div className='w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/20 flex-shrink-0'>
-          <Bot className='text-white w-4 h-4' />
+      <div className={`flex max-w-[85%] md:max-w-[75%] ${isUser ? 'flex-row-reverse' : 'flex-row'} items-end gap-2`}>
+        {/* 头像 */}
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-sm
+          ${isUser 
+            ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white' 
+            : 'bg-gradient-to-br from-white/80 to-white/40 text-gray-800 backdrop-blur-md border border-white/50'
+          }`}>
+          {isUser ? <User size={14} /> : <Bot size={14} />}
         </div>
-      )}
 
-      {/* Message Content Bubble */}
-      <div
-        className={`
-        ${
-          isUser
-            ? 'max-w-2xl bg-[#1E293B] border border-white/10 rounded-2xl rounded-tr-none p-4 text-slate-100 leading-relaxed shadow-lg'
-            : 'flex-1 bg-white/5 border border-white/5 rounded-2xl rounded-tl-none p-4 text-slate-300'
-        }
-      `}
-      >
-        {/* 渲染图片 */}
-        {imageUrls.length > 0 && (
-          <div className='flex flex-wrap gap-2 mb-3'>
-            {imageUrls.map((url, idx) => (
-              <img
-                key={idx}
-                src={url}
-                alt={`Image ${idx + 1}`}
-                className='max-w-xs max-h-64 rounded-lg object-cover border border-white/10'
-                onError={(e) => {
-                  console.error('图片加载失败:', url.substring(0, 100));
-                  e.currentTarget.style.display = 'none';
-                }}
+        {/* 气泡 */}
+        <div className={`px-5 py-3.5 shadow-sm text-[15px] leading-relaxed relative group
+          ${isUser 
+            ? 'bg-blue-600 text-white rounded-2xl rounded-tr-sm' 
+            : 'bg-white/60 backdrop-blur-md border border-white/40 text-gray-800 rounded-2xl rounded-tl-sm'
+          }`}>
+          
+          {/* 渲染图片 */}
+          {imageUrls.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {imageUrls.map((url, idx) => (
+                <img
+                  key={idx}
+                  src={url}
+                  alt={`Image ${idx + 1}`}
+                  className="max-w-xs max-h-64 rounded-lg object-cover border border-white/10"
+                  onError={(e) => {
+                    console.error('图片加载失败:', url.substring(0, 100));
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* 渲染工具调用 (在文本内容之前) */}
+          {!isUser && (message.tool_calls || message.toolCallResults) && (
+            <div className="mb-2">
+              <ToolCallDisplay
+                toolCalls={message.toolCallResults || message.tool_calls || []}
               />
-            ))}
-          </div>
-        )}
+            </div>
+          )}
 
-        {/* 渲染工具调用 (在文本内容之前) */}
-        {!isUser && (message.tool_calls || message.toolCallResults) && (
-          <div className='mb-1'>
-            <ToolCallDisplay
-              toolCalls={message.toolCallResults || message.tool_calls || []}
-            />
-          </div>
-        )}
+          {/* 渲染文本内容或加载提示 */}
+          {messageContent ? (
+            <div
+              className={`text-[15px] leading-relaxed w-full ${
+                isUser ? 'text-white' : 'text-gray-800'
+              }`}
+            >
+              <MarkdownRenderer content={messageContent} messageId={message.id} />
+            </div>
+          ) : !isUser ? (
+            <span className="flex gap-1 mt-1 h-4 items-center">
+              <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+              <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+              <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></span>
+            </span>
+          ) : null}
 
-        {/* 渲染文本内容或加载提示 */}
-        {messageContent ? (
-          <div
-            className={`text-[15px] leading-relaxed w-full ${
-              isUser ? 'text-slate-100' : 'text-slate-300'
-            }`}
-          >
-            <MarkdownRenderer content={messageContent} messageId={message.id} />
-          </div>
-        ) : !isUser ? (
-          <div className='text-blue-200 text-sm animate-pulse'>
-            AI 正在思考...
-          </div>
-        ) : null}
-
-        {/* If streaming cursor (only show when there is content) */}
-        {message.isStreaming && messageContent && (
-          <div className='text-blue-200 text-sm animate-pulse'>
-            AI 正在思考...
-          </div>
-        )}
-      </div>
-
-      {isUser && (
-        <div className='ml-0 w-10 h-10 rounded-full bg-slate-700 overflow-hidden flex-shrink-0 border border-white/10 shadow-lg'>
-          {/* Fallback avatar or icon */}
-          <div className='w-full h-full flex items-center justify-center text-slate-400'>
-            <User className='w-5 h-5' />
-          </div>
-          {/* Use img if available */}
+          {/* If streaming cursor */}
+          {message.isStreaming && messageContent && (
+            <span className="inline-block w-1.5 h-4 ml-1 bg-blue-400 animate-pulse align-middle" />
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

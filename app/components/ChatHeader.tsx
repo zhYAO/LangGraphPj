@@ -1,29 +1,40 @@
-import { Bell, GitBranch } from 'lucide-react';
+import { Bell, Settings, Share2, MoreHorizontal } from 'lucide-react';
 
 /**
  * 聊天页面头部导航栏组件
  */
 export default function ChatHeader() {
   return (
-    <header className='h-16 flex items-center justify-between px-8 z-50 w-full mb-0 bg-transparent border-b-0 shadow-none sticky top-0'>
-      {/* 左侧：应用标识 */}
-      <div className='flex items-center gap-3'></div>
+    <header className="h-20 shrink-0 border-b border-white/20 flex items-center justify-between px-6 md:px-8 bg-white/20 backdrop-blur-md sticky top-0 z-20">
+      {/* 左侧：应用标识或面包屑 */}
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1 bg-white/40 hover:bg-white/60 px-3 py-1.5 rounded-xl transition-all cursor-pointer group border border-white/20 shadow-sm">
+          <span className="text-sm font-semibold text-gray-700">AI Studio</span>
+          <span className="text-gray-400 group-hover:text-gray-600">
+            <MoreHorizontal size={14} />
+          </span>
+        </div>
+      </div>
 
-      {/* 右侧：用户信息和功能图标 */}
-      <div className='flex items-center gap-5 text-slate-400 text-sm'>
-
-        {/* 功能图标 */}
+      {/* 右侧：功能图标 */}
+      <div className="flex items-center gap-2 md:gap-4">
         <button
-          className='hover:text-white transition p-2 rounded-lg hover:bg-white/5'
-          title='通知'
+          className="p-2.5 text-gray-500 hover:text-gray-800 hover:bg-white/40 rounded-xl transition-all"
+          title="分享"
         >
-          <Bell className='w-4 h-4' />
+          <Share2 size={18} />
         </button>
         <button
-          className='hover:text-white transition p-2 rounded-lg hover:bg-white/5'
-          title='分支'
+          className="p-2.5 text-gray-500 hover:text-gray-800 hover:bg-white/40 rounded-xl transition-all"
+          title="通知"
         >
-          <GitBranch className='w-4 h-4' />
+          <Bell size={18} />
+        </button>
+        <button
+          className="p-2.5 text-gray-500 hover:text-gray-800 hover:bg-white/40 rounded-xl transition-all"
+          title="设置"
+        >
+          <Settings size={18} />
         </button>
       </div>
     </header>

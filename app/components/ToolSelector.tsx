@@ -58,7 +58,7 @@ export default function ToolSelector({
           ${
             selectedTools.length > 0
               ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md'
-              : 'text-slate-400 hover:text-white hover:bg-white/5'
+              : 'text-slate-400 hover:text-black hover:bg-black/5'
           }
         `}
         title="选择工具"
@@ -86,114 +86,54 @@ export default function ToolSelector({
 
       {/* 下拉菜单 */}
       {isOpen && (
-        <div
-          className="
-            absolute bottom-full left-0 mb-2 w-72
-            bg-slate-900/95 backdrop-blur-xl
-            border border-white/10
-            rounded-xl shadow-2xl
-            overflow-hidden
-            animate-in slide-in-from-bottom-2 duration-200
-          "
-        >
-          {/* 标题 */}
-          <div className="px-4 py-3 border-b border-white/10">
-            <h3 className="text-sm font-semibold text-white">
-              选择工具
-            </h3>
-            <p className="text-xs text-slate-400 mt-1">
-              点击选择或取消选择工具
-            </p>
+        <div className="absolute bottom-full left-0 mb-2 w-64 bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl shadow-2xl overflow-hidden animate-slide-up">
+          <div className="p-3 border-b border-black/5 bg-black/5">
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">可用工具</span>
           </div>
-
-          {/* 工具列表 */}
-          <div className="max-h-80 overflow-y-auto">
-            {tools.map((tool) => {
-              const isSelected = selectedTools.includes(tool.id);
-              return (
-                <button
-                  key={tool.id}
-                  type="button"
-                  onClick={() => handleToolClick(tool.id)}
-                  className={`
-                    w-full px-4 py-3 text-left
-                    transition-colors duration-150
-                    hover:bg-white/5
-                    ${isSelected ? 'bg-blue-500/20' : ''}
-                  `}
-                >
-                  <div className="flex items-start gap-3">
-                    {/* 复选框 */}
-                    <div
-                      className={`
-                        flex-shrink-0 w-5 h-5 mt-0.5
-                        border-2 rounded
-                        transition-all duration-200
-                        ${
-                          isSelected
-                            ? 'bg-blue-600 border-blue-600'
-                            : 'border-slate-600'
-                        }
-                      `}
-                    >
-                      {isSelected && (
-                        <svg
-                          className="w-full h-full text-white"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={3}
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                      )}
-                    </div>
-
-                    {/* 工具信息 */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        {tool.icon && <span className="text-lg">{tool.icon}</span>}
-                        <span
-                          className={`
-                            text-sm font-medium
-                            ${
-                              isSelected
-                                ? 'text-blue-400'
-                                : 'text-white'
-                            }
-                          `}
-                        >
-                          {tool.name}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-400 mt-1 line-clamp-2">
-                        {tool.description}
-                      </p>
+          <div className="max-h-64 overflow-y-auto p-2 space-y-1">
+            {tools.map((tool) => (
+              <button
+                key={tool.id}
+                onClick={() => handleToolClick(tool.id)}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 group ${
+                  selectedTools.includes(tool.id)
+                    ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20'
+                    : 'text-gray-600 hover:bg-black/5'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`p-1.5 rounded-lg ${
+                    selectedTools.includes(tool.id) ? 'bg-white/20' : 'bg-black/5 group-hover:bg-black/10'
+                  }`}>
+                    {tool.icon}
+                  </div>
+                  <div className="text-left">
+                    <div className="text-sm font-medium leading-none">{tool.name}</div>
+                    <div className={`text-[10px] mt-1 ${
+                      selectedTools.includes(tool.id) ? 'text-white/70' : 'text-gray-400'
+                    }`}>
+                      {tool.description}
                     </div>
                   </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* 底部操作 */}
-          {selectedTools.length > 0 && (
-            <div className="px-4 py-3 border-t border-white/10 bg-slate-800/50">
-              <button
-                type="button"
-                onClick={() => {
-                  selectedTools.forEach((toolId) => onToolToggle(toolId));
-                }}
-                className="text-xs text-blue-400 hover:underline"
-              >
-                清除全部选择
+                </div>
+                {selectedTools.includes(tool.id) && (
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={3}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                )}
               </button>
-            </div>
-          )}
+            ))}
+          </div>
         </div>
       )}
     </div>

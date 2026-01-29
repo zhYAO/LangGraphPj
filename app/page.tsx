@@ -122,52 +122,60 @@ export default function ChatPage() {
   }
 
   return (
-    <main className="flex-1 flex flex-row relative h-full overflow-hidden">
-      {/* 左侧会话历史侧边栏 */}
-      <SessionSidebar
-        currentSessionId={sessionId}
-        sessions={sessions}
-        isLoading={sessionsLoading}
-        isSwitchingSession={isLoadingHistory}
-        onSelect={selectSession}
-        onNew={resetCurrentSession}
-        onDelete={deleteSession}
-        onRename={renameSession}
-      />
+    <div className="relative w-full h-screen overflow-hidden bg-[#eef2f5] font-sans text-gray-800 selection:bg-blue-200">
+      {/* 动态背景 blobs */}
+      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-300/30 rounded-full blur-[100px] animate-pulse"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-blue-300/30 rounded-full blur-[100px] animate-pulse delay-1000"></div>
+      <div className="absolute top-[40%] left-[40%] w-[300px] h-[300px] bg-pink-300/20 rounded-full blur-[80px]"></div>
 
-      {/* 右侧主体内容区域 */}
-      <div className={`flex-1 flex z-10 overflow-hidden relative h-full flex-col`}>
-        {/* 顶部导航栏 */}
-        <ChatHeader />
+      {/* 主布局容器 - 增加了 padding 以解决贴边问题 */}
+      <div className="relative flex w-full h-full p-4 md:p-6 lg:p-8 gap-5 lg:gap-6">
+        {/* 左侧会话历史侧边栏 */}
+        <SessionSidebar
+          currentSessionId={sessionId}
+          sessions={sessions}
+          isLoading={sessionsLoading}
+          isSwitchingSession={isLoadingHistory}
+          onSelect={selectSession}
+          onNew={resetCurrentSession}
+          onDelete={deleteSession}
+          onRename={renameSession}
+        />
 
-        <div className="flex-1 flex flex-col relative overflow-hidden">
-          <div
-            className="flex-1 overflow-y-auto scrollbar-hide scroll-smooth flex flex-col z-10 pb-32"
-            id="chat-container"
-          >
-            {/* 消息列表 */}
-            <MessageList
-              messages={messages}
-              isLoading={isLoading}
-              isLoadingHistory={isLoadingHistory}
-              onSuggestionClick={handleSuggestionClick}
-            />
+        {/* 右侧主体内容区域 */}
+        <main className="flex-1 relative flex flex-col h-full rounded-[20px] bg-white/30 backdrop-blur-2xl border border-white/60 shadow-2xl overflow-hidden">
+          {/* 顶部导航栏 */}
+          <ChatHeader />
+
+          <div className="flex-1 flex flex-col relative overflow-hidden">
+            <div
+              className="flex-1 overflow-y-auto scrollbar-hide scroll-smooth flex flex-col"
+              id="chat-container"
+            >
+              {/* 消息列表 */}
+              <MessageList
+                messages={messages}
+                isLoading={isLoading}
+                isLoadingHistory={isLoadingHistory}
+                onSuggestionClick={handleSuggestionClick}
+              />
+            </div>
+
+            {/* 消息输入框 */}
+            <div className="shrink-0 px-4 md:px-[10%] lg:px-[15%] pb-8 pt-4">
+              <ChatInput
+                ref={chatInputRef}
+                onSend={sendMessage}
+                disabled={isLoading}
+                availableTools={availableTools}
+                availableModels={availableModels}
+                currentModel={currentModel}
+                onModelChange={handleModelChange}
+              />
+            </div>
           </div>
-
-          {/* 消息输入框 */}
-          <div className="absolute bottom-8 left-0 right-0 px-4 md:px-8 flex justify-center z-30">
-            <ChatInput
-              ref={chatInputRef}
-              onSend={sendMessage}
-              disabled={isLoading}
-              availableTools={availableTools}
-              availableModels={availableModels}
-              currentModel={currentModel}
-              onModelChange={handleModelChange}
-            />
-          </div>
-        </div>
+        </main>
       </div>
-    </main>
+    </div>
   )
 }

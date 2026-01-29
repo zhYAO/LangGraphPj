@@ -124,109 +124,89 @@ export default function SessionSidebar({
 
   // ==================== 渲染 UI ====================
   return (
-    <aside className='w-64 glass-panel flex flex-col h-full z-20 relative border-r-0 hidden md:flex'>
+    <aside className="w-[280px] shrink-0 flex flex-col bg-white/40 backdrop-blur-xl border border-white/50 shadow-xl rounded-[20px] h-full my-auto transition-all duration-300 ease-spring">
       {/* Logo */}
-      <div className='p-6 flex items-center gap-3'>
-        <div className='w-8 h-8 rounded bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20'>
-          <Zap className='text-white w-4 h-4' />
+      <div className="p-5 flex items-center justify-between">
+        <div className="flex items-center gap-3 px-2">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-gray-800 to-black text-white flex items-center justify-center shadow-lg">
+            <Zap size={18} />
+          </div>
+          <span className="font-semibold text-lg text-gray-800 tracking-tight">AI Studio</span>
         </div>
-        <span className='font-bold text-lg tracking-tight text-white'>
-          ChatAPP
-          <span className='text-blue-400 text-xs align-top ml-1'>AI</span>
-        </span>
       </div>
 
       {/* 新建对话按钮 */}
-      <div className='px-4 mb-6'>
+      <div className="px-5 mb-3">
         <button
           onClick={handleNew}
           disabled={isLoading}
-          className='w-full py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-slate-200 font-medium transition-all flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed'
+          className="w-full py-3.5 px-4 bg-white/50 hover:bg-white/80 border border-white/60 shadow-sm rounded-2xl flex items-center gap-3 transition-all duration-200 group active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <Plus className='w-4 h-4 text-blue-400 group-hover:rotate-90 transition-transform' />
-          <span>新建对话</span>
+          <Plus size={20} className="text-gray-600 group-hover:text-blue-600 transition-colors" />
+          <span className="text-[15px] font-medium text-gray-700">新对话</span>
         </button>
       </div>
 
       {/* 会话列表 */}
-      <div className='flex-1 overflow-y-auto px-3 scrollbar-hide'>
-        <div className='text-[10px] font-bold text-slate-600 uppercase tracking-widest mb-3 px-3'>
+      <div className="flex-1 overflow-y-auto px-3 py-2 space-y-1 custom-scrollbar">
+        <div className="px-4 py-2 text-xs font-semibold text-gray-400/80 uppercase tracking-wider">
           历史记录
         </div>
         <div>
           {isLoading && sessions.length === 0 ? (
-            <div className='p-4 text-center text-slate-500 text-xs italic'>
+            <div className="p-4 text-center text-gray-400 text-xs italic">
               加载中...
             </div>
           ) : sessions.length === 0 ? (
-            <div className='p-4 text-center text-slate-500 text-xs italic'>
+            <div className="p-4 text-center text-gray-400 text-xs italic">
               暂无历史会话
             </div>
           ) : (
             sessions.map((session) => (
               <div
                 key={session.id}
-                className={`group flex items-center gap-3 py-1 px-2 rounded-lg cursor-pointer transition-colors relative ${
+                className={`group flex items-center gap-3 py-3 px-4 rounded-2xl cursor-pointer transition-all relative ${
                   currentSessionId === session.id
-                    ? 'bg-white/10 text-slate-200 shadow-sm border border-white/5'
-                    : 'hover:bg-white/5 text-slate-400 hover:text-slate-200 border border-transparent'
+                    ? 'bg-white/60 text-gray-800 shadow-sm border border-white/80'
+                    : 'hover:bg-white/40 text-gray-600 hover:text-gray-800 border border-transparent'
                 } ${isSwitchingSession && currentSessionId === session.id ? 'opacity-50 pointer-events-none' : ''}`}
                 onClick={() => onSelect(session.id)}
               >
-                {/* 当前会话指示器 */}
-                <div
-                  className={`w-1 h-8 rounded-full absolute left-0 transition-all duration-300 ${
-                    currentSessionId === session.id
-                      ? 'bg-blue-500 opacity-100'
-                      : 'bg-transparent opacity-0'
-                  }`}
-                />
-
                 {/* 会话名称或编辑输入框 */}
                 {editingSessionId === session.id ? (
                   <input
-                    type='text'
+                    type="text"
                     value={newSessionName}
                     onChange={(e) => setNewSessionName(e.target.value)}
                     onBlur={() => saveRename(session.id)}
                     onKeyDown={(e) => handleRenameKeyDown(e, session.id)}
-                    className='flex-1 bg-black/20 text-white text-sm rounded px-2 py-1 outline-none border border-blue-500/50 min-w-0'
+                    className="flex-1 bg-white/50 text-gray-800 text-sm rounded-xl px-2 py-1 outline-none border border-blue-500/30 min-w-0"
                     autoFocus
                     onClick={(e) => e.stopPropagation()}
                   />
                 ) : (
-                  <div className='flex-1 flex items-center gap-2 min-w-0'>
-                    <span className='flex-1 truncate text-sm'>
+                  <div className="flex-1 flex items-center gap-2 min-w-0">
+                    <span className="flex-1 truncate text-sm font-medium">
                       {getSessionTitle(session)}
                     </span>
-                    {isSwitchingSession && currentSessionId === session.id && (
-                      <div className='flex items-center gap-1'>
-                        <div className='w-2 h-2 bg-blue-400 rounded-full animate-pulse'></div>
-                        <span className='text-xs text-blue-400'>加载中...</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* 悬停操作按钮(重命名和删除) */}
-                {editingSessionId !== session.id && (
-                  <div
-                    className={`flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity absolute right-2 bg-[#050509]/80 backdrop-blur shadow-sm rounded-lg p-0.5 border border-white/10`}
-                  >
-                    <button
-                      onClick={(e) => handleRename(session.id, session.name, e)}
-                      className='p-1.5 text-slate-400 hover:text-blue-400 hover:bg-white/10 rounded-md transition-colors'
-                      title='重命名'
-                    >
-                      <Edit2 className='w-3 h-3' />
-                    </button>
-                    <button
-                      onClick={(e) => handleDelete(session.id, e)}
-                      className='p-1.5 text-slate-400 hover:text-red-400 hover:bg-white/10 rounded-md transition-colors'
-                      title='删除'
-                    >
-                      <Trash2 className='w-3 h-3' />
-                    </button>
+                    
+                    {/* 操作按钮 - 仅在悬停或选中时显示 */}
+                    <div className={`flex items-center gap-1 transition-opacity ${currentSessionId === session.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                      <button
+                        onClick={(e) => handleRename(session.id, session.name, e)}
+                        className="p-1.5 hover:bg-black/5 rounded-lg text-gray-400 hover:text-gray-600 transition-colors"
+                        title="重命名"
+                      >
+                        <Edit2 size={14} />
+                      </button>
+                      <button
+                        onClick={(e) => handleDelete(session.id, e)}
+                        className="p-1.5 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500 transition-colors"
+                        title="删除"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -235,20 +215,17 @@ export default function SessionSidebar({
         </div>
       </div>
 
-      {/* 用户信息 */}
-      <div className='p-4 border-t border-white/5'>
-        <div className='flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 cursor-pointer transition'>
-          <div className='relative'>
-            <div className='w-9 h-9 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center text-slate-400'>
-              <User className='w-5 h-5' />
-            </div>
-            <div className='absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-[#0B0E14]'></div>
+      {/* 用户资料区域 */}
+      <div className="p-5 border-t border-white/20">
+        <button className="w-full flex items-center gap-3 p-2.5 rounded-2xl hover:bg-white/40 transition-colors border border-transparent hover:border-white/30">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-400 to-purple-400 overflow-hidden shadow-sm ring-2 ring-white/50">
+            <User size={18} className="w-full h-full p-2 text-white" />
           </div>
-          <div className='flex flex-col'>
-            <span className='text-sm font-medium text-slate-200'>Dev User</span>
-            <span className='text-[10px] text-blue-400/80'>Premium Plan</span>
+          <div className="flex-1 text-left">
+            <div className="text-sm font-semibold text-gray-800">设计师 User</div>
+            <div className="text-xs text-gray-500">Pro 计划</div>
           </div>
-        </div>
+        </button>
       </div>
     </aside>
   );

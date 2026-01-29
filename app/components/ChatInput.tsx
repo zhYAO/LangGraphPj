@@ -137,22 +137,22 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
 
     return (
       <div
-        className={`w-full max-w-5xl glass-panel rounded-2xl shadow-2xl shadow-black/50 transition-all duration-300 ${
+        className={`w-full max-w-5xl bg-white/70 backdrop-blur-xl border border-white/60 shadow-xl rounded-[20px] p-2 focus-within:bg-white/90 transition-all duration-300 ${
           disabled
-            ? 'ring-1 ring-yellow-500/30 shadow-[0_0_30px_rgba(234,179,8,0.15)]'
-            : 'focus-within:ring-1 focus-within:ring-blue-500/50 focus-within:shadow-[0_0_40px_rgba(59,130,246,0.2)]'
+            ? 'opacity-60 cursor-not-allowed'
+            : 'focus-within:ring-2 focus-within:ring-blue-500/10'
         }`}
       >
         {/* 输入框区域 */}
-        <div className="px-4 pt-4 pb-2">
+        <div className="px-2 pt-2 pb-1">
           {/* 图片预览 - 在输入框上方 */}
           {imagePreviews.length > 0 && (
-            <div className="mb-3">
+            <div className="mb-3 px-3">
               <div className="flex flex-wrap gap-2">
                 {imagePreviews.map((preview, index) => (
                   <div
                     key={index}
-                    className="relative group w-20 h-20 rounded-lg overflow-hidden border border-white/10"
+                    className="relative group w-16 h-16 rounded-xl overflow-hidden border border-gray-200 shadow-sm"
                   >
                     <img
                       src={preview}
@@ -167,10 +167,6 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
                     >
                       <X className="w-3 h-3 text-white" />
                     </button>
-                    {/* 文件名提示 */}
-                    <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-1 py-0.5 text-[10px] text-white truncate opacity-0 group-hover:opacity-100 transition-opacity">
-                      {uploadedImages[index]?.name}
-                    </div>
                   </div>
                 ))}
               </div>
@@ -183,12 +179,11 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={disabled ? 'AI 正在回复中...' : '输入您的问题，开启 AI 之旅...'}
-            className={`w-full bg-transparent border-none outline-none text-slate-200 text-base resize-none max-h-32 transition-opacity ${
-              disabled ? 'placeholder-yellow-400/60 opacity-60' : 'placeholder-slate-500'
-            }`}
+            placeholder={disabled ? 'AI 正在回复中...' : '开始新的对话...'}
+            className="w-full bg-transparent border-none focus:ring-0 focus:outline-none px-4 py-3 text-gray-800 placeholder-gray-400/80 resize-none max-h-[200px] min-h-[56px] text-[15.5px] leading-relaxed scrollbar-hide overflow-hidden"
             rows={1}
             disabled={disabled}
+            style={{ height: 'auto' }}
           />
         </div>
 
@@ -202,85 +197,74 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
           className="hidden"
         />
 
-        {/* 工具栏 */}
-        <div className="flex items-center justify-between px-3 pb-3 pt-1 border-t border-white/5">
-          {/* 左侧：附件、工具选择器和已选工具徽章 */}
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            {/* 附件/图片上传按钮 */}
-            <button
-              onClick={handleAddClick}
-              className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition flex-shrink-0 relative group"
-              disabled={disabled}
-              title="上传图片"
-            >
-              <Plus className="w-5 h-5" />
-              {uploadedImages.length > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-blue-600 text-white text-[10px] rounded-full flex items-center justify-center">
-                  {uploadedImages.length}
-                </span>
-              )}
-            </button>
+        {/* 底部工具栏 */}
+        <div className="flex items-center justify-between px-2 pb-1.5">
+          <div className="flex items-center gap-1">
+            {/* 模型选择器 */}
+            <ModelSelector
+              models={availableModels}
+              selectedModel={currentModel}
+              onModelChange={onModelChange || (() => {})}
+            />
+
+            <div className="w-[1px] h-4 bg-gray-200 mx-1"></div>
 
             {/* 工具选择器 */}
-            {availableTools.length > 0 && (
-              <div className="flex-shrink-0">
-                <ToolSelector
-                  tools={availableTools}
-                  selectedTools={selectedTools}
-                  onToolToggle={handleToolToggle}
-                />
-              </div>
-            )}
+            <ToolSelector
+              tools={availableTools}
+              selectedTools={selectedTools}
+              onToolToggle={handleToolToggle}
+            />
 
-            {/* 已选工具徽章 - 在同一行显示 */}
-            {selectedTools.length > 0 && (
-              <div className="flex items-center gap-2 flex-wrap min-w-0">
-                {selectedTools.map((toolId) => {
-                  const tool = availableTools.find((t) => t.id === toolId)
-                  return tool ? (
-                    <ToolBadge
-                      key={toolId}
-                      name={tool.name}
-                      icon={tool.icon}
-                      onRemove={() => handleRemoveTool(toolId)}
-                    />
-                  ) : null
-                })}
-              </div>
-            )}
+            {/* 图片上传按钮 */}
+            <button
+              onClick={handleAddClick}
+              disabled={disabled}
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-black/5 rounded-full transition-colors"
+              title="上传图片"
+            >
+              <ImageIcon size={19} />
+            </button>
           </div>
 
-          {/* 右侧：模型选择和发送按钮 */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {/* 模型选择器 */}
-            {availableModels.length > 0 && onModelChange && (
-              <ModelSelector
-                models={availableModels}
-                selectedModel={currentModel}
-                onModelChange={onModelChange}
-              />
-            )}
-
+          <div className="flex items-center gap-3">
             {/* 发送按钮 */}
             <button
               onClick={handleSend}
-              disabled={(!input.trim() && uploadedImages.length === 0) || disabled}
-              className={`p-2 rounded-lg shadow-lg transition-all min-w-10 min-h-10 flex items-center justify-center ${
-                disabled
-                  ? 'bg-yellow-600/20 text-yellow-400 cursor-wait'
-                  : (input.trim() || uploadedImages.length > 0)
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:opacity-90 text-white shadow-blue-600/20 active:scale-95'
-                    : 'bg-slate-800 text-slate-500 cursor-not-allowed'
-              }`}
+              disabled={(input.trim() === '' && uploadedImages.length === 0) || disabled}
+              className={`
+                p-2.5 rounded-full transition-all duration-300 flex items-center justify-center
+                ${(input.trim() || uploadedImages.length > 0) && !disabled
+                  ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md hover:shadow-lg transform hover:-translate-y-0.5'
+                  : 'bg-gray-100 text-gray-300 cursor-not-allowed'}
+              `}
             >
               {disabled ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
-                <ArrowUp className="w-5 h-5" />
+                <ArrowUp size={20} />
               )}
             </button>
           </div>
         </div>
+
+        {/* 已选工具展示区域 */}
+        {selectedTools.length > 0 && (
+          <div className="px-4 pb-3 flex flex-wrap gap-2 border-t border-gray-100 pt-2 mt-1 mx-2">
+            {selectedTools.map((toolId) => {
+              const tool = availableTools.find((t) => t.id === toolId)
+              if (!tool) return null
+              return (
+                <ToolBadge
+                  key={toolId}
+                  name={tool.name}
+                  icon={tool.icon}
+                  onRemove={() => handleRemoveTool(toolId)}
+                />
+              )
+            })}
+          </div>
+        )}
       </div>
     )
   }
