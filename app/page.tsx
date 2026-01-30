@@ -24,13 +24,14 @@ export default function ChatPage() {
 
   // ==================== 模型配置 ====================
   // 从 localStorage 读取保存的模型,如果没有则使用默认值
-  const [currentModel, setCurrentModel] = useState(() => {
-    if (window) {
-      const savedModel = localStorage.getItem('selectedModel')
-      return savedModel || 'google:gemini-3-flash-preview'
+  const [currentModel, setCurrentModel] = useState('google:gemini-3-flash-preview')
+
+  useEffect(() => {
+    const savedModel = localStorage.getItem('selectedModel')
+    if (savedModel) {
+      setCurrentModel(savedModel)
     }
-    return 'google:gemini-3-flash-preview'
-  })
+  }, [])
 
   // 当模型切换时保存到 localStorage
   const handleModelChange = (modelId: string) => {
