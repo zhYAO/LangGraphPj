@@ -8,6 +8,7 @@ import SessionSidebar from '@/app/components/SessionSidebar'
 import ChatHeader from '@/app/components/ChatHeader'
 import MessageList from '@/app/components/MessageList'
 import { ChatInput, type ChatInputHandle } from '@/app/components/ChatInput'
+import ProtectedRoute from '@/app/components/ProtectedRoute'
 
 // 导入自定义 Hooks
 import { useSessionManager } from '@/app/hooks/useSessionManager'
@@ -125,55 +126,57 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-[#eef2f5] font-sans text-gray-800 selection:bg-blue-200">
-      {/* 主布局容器 */}
-      <div className="relative flex h-full w-full gap-5 p-4 md:p-6 lg:gap-6 lg:p-8">
-        {/* 左侧会话历史侧边栏 */}
-        <SessionSidebar
-          currentSessionId={sessionId}
-          sessions={sessions}
-          isLoading={sessionsLoading}
-          isSwitchingSession={isLoadingHistory}
-          onSelect={selectSession}
-          onNew={resetCurrentSession}
-          onDelete={deleteSession}
-          onRename={renameSession}
-        />
+    <ProtectedRoute>
+      <div className="relative h-screen w-full overflow-hidden bg-[#eef2f5] font-sans text-gray-800 selection:bg-blue-200">
+        {/* 主布局容器 */}
+        <div className="relative flex h-full w-full gap-5 p-4 md:p-6 lg:gap-6 lg:p-8">
+          {/* 左侧会话历史侧边栏 */}
+          <SessionSidebar
+            currentSessionId={sessionId}
+            sessions={sessions}
+            isLoading={sessionsLoading}
+            isSwitchingSession={isLoadingHistory}
+            onSelect={selectSession}
+            onNew={resetCurrentSession}
+            onDelete={deleteSession}
+            onRename={renameSession}
+          />
 
-        {/* 右侧主体内容区域 */}
-        <main className="relative flex h-full flex-1 flex-col overflow-hidden rounded-[20px] border border-white/60 bg-white/30 shadow-2xl backdrop-blur-2xl">
-          {/* 顶部导航栏 */}
-          <ChatHeader />
+          {/* 右侧主体内容区域 */}
+          <main className="relative flex h-full flex-1 flex-col overflow-hidden rounded-[20px] border border-white/60 bg-white/30 shadow-2xl backdrop-blur-2xl">
+            {/* 顶部导航栏 */}
+            <ChatHeader />
 
-          <div className="relative flex flex-1 flex-col overflow-hidden">
-            <div
-              className="scrollbar-hide flex flex-1 flex-col overflow-y-auto scroll-smooth"
-              id="chat-container"
-            >
-              {/* 消息列表 */}
-              <MessageList
-                messages={messages}
-                isLoading={isLoading}
-                isLoadingHistory={isLoadingHistory}
-                onSuggestionClick={handleSuggestionClick}
-              />
+            <div className="relative flex flex-1 flex-col overflow-hidden">
+              <div
+                className="scrollbar-hide flex flex-1 flex-col overflow-y-auto scroll-smooth"
+                id="chat-container"
+              >
+                {/* 消息列表 */}
+                <MessageList
+                  messages={messages}
+                  isLoading={isLoading}
+                  isLoadingHistory={isLoadingHistory}
+                  onSuggestionClick={handleSuggestionClick}
+                />
+              </div>
+
+              {/* 消息输入框 */}
+              <div className="shrink-0 px-4 pt-4 pb-8 md:px-[10%] lg:px-[15%]">
+                <ChatInput
+                  ref={chatInputRef}
+                  onSend={sendMessage}
+                  disabled={isLoading}
+                  availableTools={availableTools}
+                  availableModels={availableModels}
+                  currentModel={currentModel}
+                  onModelChange={handleModelChange}
+                />
+              </div>
             </div>
-
-            {/* 消息输入框 */}
-            <div className="shrink-0 px-4 pt-4 pb-8 md:px-[10%] lg:px-[15%]">
-              <ChatInput
-                ref={chatInputRef}
-                onSend={sendMessage}
-                disabled={isLoading}
-                availableTools={availableTools}
-                availableModels={availableModels}
-                currentModel={currentModel}
-                onModelChange={handleModelChange}
-              />
-            </div>
-          </div>
-        </main>
+          </main>
+        </div>
       </div>
-    </div>
+    </ProtectedRoute>
   )
 }

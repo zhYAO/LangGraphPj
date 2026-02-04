@@ -41,6 +41,7 @@ export async function createSession(
   client?: SupabaseClient,
 ): Promise<void> {
   const db = client || supabase
+
   const { error } = await db.from('sessions').insert({
     id,
     name,

@@ -20,3 +20,14 @@ export {
   updateSessionName,
   deleteSession,
 } from './sessions'
+
+// 导出 Auth 相关操作
+export {
+  getUserByToken,
+  signInWithPassword,
+  signUpWithEmail,
+  signOutWithToken,
+  exchangeCodeForSession,
+  signInWithOAuth,
+  type OAuthProvider,
+} from './auth'

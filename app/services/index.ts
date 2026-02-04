@@ -4,6 +4,7 @@
 
 export { sessionService, SessionService } from './session.service'
 export { chatService, ChatService } from './chat.service'
+export { authService, AuthService, type OAuthProvider } from './auth.service'
 
 // 通用类型
 export * from './types'

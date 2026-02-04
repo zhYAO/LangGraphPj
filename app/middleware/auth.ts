@@ -3,8 +3,8 @@ import { createClient } from '@supabase/supabase-js'
 
 // 初始化 Supabase 客户端（用于服务端鉴权）
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY!
-// const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!;
+const supabaseAnonKey =
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // Cookie 名称
@@ -23,8 +23,8 @@ export interface AuthUser {
  * 认证结果接口
  */
 export interface AuthResult {
-  user?: AuthUser | null
-  token?: string | null
+  user: AuthUser | null
+  token: string | null
   client: any | null
   error?: string
 }
@@ -62,8 +62,7 @@ export async function authenticateRequest(
     }
 
     // 3. 验证 token 并获取用户信息
-    const { data, error } = await supabase.auth.getUser()
-    console.log('🚀 ~ authenticateRequest ~ data:', data)
+    const { data, error } = await supabase.auth.getUser(token)
 
     if (error || !data.user) {
       return {
@@ -78,7 +77,7 @@ export async function authenticateRequest(
     const authenticatedClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: {
         headers: {
-          // Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       },
     })
@@ -86,11 +85,11 @@ export async function authenticateRequest(
     // 5. 返回认证结果
     return {
       user: {
-        id: 'mockUserId',
-        email: 'mock@example.com',
-        // ...data.user.user_metadata
+        id: data.user.id,
+        email: data.user.email || '',
+        ...data.user.user_metadata,
       },
-      token: 'mock token',
+      token,
       client: authenticatedClient,
     }
   } catch (error) {
@@ -126,9 +125,9 @@ export function createAuthMiddleware(
     const auth = await authenticateRequest(request)
 
     // 如果认证失败,返回 401
-    // if (!auth.user) {
-    //   return unauthorizedResponse(auth.error || '未授权');
-    // }
+    if (!auth.user) {
+      return unauthorizedResponse(auth.error || '未授权')
+    }
 
     // 认证成功,调用处理器
     return handler(request, auth)
