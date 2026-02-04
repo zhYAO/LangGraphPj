@@ -19,14 +19,17 @@ export function useChatMessages() {
    * @param content - 消息内容（文本或多模态内容数组）
    * @returns 创建的消息对象
    */
-  const addUserMessage = useCallback((content: string | Array<any>): Message => {
-    const userMessage = new HumanMessage({
-      content,
-      id: Date.now().toString()
-    }) as Message
-    setMessages(prev => [...prev, userMessage])
-    return userMessage
-  }, [])
+  const addUserMessage = useCallback(
+    (content: string | Array<any>): Message => {
+      const userMessage = new HumanMessage({
+        content,
+        id: Date.now().toString(),
+      }) as Message
+      setMessages((prev) => [...prev, userMessage])
+      return userMessage
+    },
+    [],
+  )
 
   /**
    * 添加 AI 助手消息（使用 LangChain AIMessage）
@@ -35,15 +38,15 @@ export function useChatMessages() {
    */
   const addAssistantMessage = useCallback((): Message => {
     const assistantMessage = new AIMessage({
-      content: '',                       // 初始为空,等待流式填充
-      id: (Date.now() + 1).toString()
+      content: '', // 初始为空,等待流式填充
+      id: (Date.now() + 1).toString(),
     }) as Message
     // 使用对象展开确保 React 能检测到变化
     const streamingMessage = {
       ...assistantMessage,
-      isStreaming: true
+      isStreaming: true,
     } as Message
-    setMessages(prev => [...prev, streamingMessage])
+    setMessages((prev) => [...prev, streamingMessage])
     return streamingMessage
   }, [])
 
@@ -53,23 +56,29 @@ export function useChatMessages() {
    * @param messageId - 消息 ID
    * @param content - 要追加的内容
    */
-  const updateMessageContent = useCallback((messageId: string, content: string) => {
-    setMessages(prev => prev.map(msg => {
-      if (msg.id === messageId) {
-        // 创建新的 AIMessage 对象，保留流式状态和工具调用信息
-        const currentContent = typeof msg.content === 'string' ? msg.content : ''
-        const updatedMessage = new AIMessage({
-          content: currentContent + content,
-          id: msg.id
-        }) as Message
-        updatedMessage.isStreaming = msg.isStreaming
-        updatedMessage.toolCallResults = msg.toolCallResults
-        updatedMessage.tool_calls = msg.tool_calls
-        return updatedMessage
-      }
-      return msg
-    }))
-  }, [])
+  const updateMessageContent = useCallback(
+    (messageId: string, content: string) => {
+      setMessages((prev) =>
+        prev.map((msg) => {
+          if (msg.id === messageId) {
+            // 创建新的 AIMessage 对象，保留流式状态和工具调用信息
+            const currentContent =
+              typeof msg.content === 'string' ? msg.content : ''
+            const updatedMessage = new AIMessage({
+              content: currentContent + content,
+              id: msg.id,
+            }) as Message
+            updatedMessage.isStreaming = msg.isStreaming
+            updatedMessage.toolCallResults = msg.toolCallResults
+            updatedMessage.tool_calls = msg.tool_calls
+            return updatedMessage
+          }
+          return msg
+        }),
+      )
+    },
+    [],
+  )
 
   /**
    * 完成流式传输
@@ -77,17 +86,19 @@ export function useChatMessages() {
    * @param messageId - 消息 ID
    */
   const finishStreaming = useCallback((messageId: string) => {
-    setMessages(prev => prev.map(msg => {
-      if (msg.id === messageId) {
-        // 创建新对象以确保 React 检测到变化，保留所有属性
-        const updated = {
-          ...msg,
-          isStreaming: false
-        } as Message
-        return updated
-      }
-      return msg
-    }))
+    setMessages((prev) =>
+      prev.map((msg) => {
+        if (msg.id === messageId) {
+          // 创建新对象以确保 React 检测到变化，保留所有属性
+          const updated = {
+            ...msg,
+            isStreaming: false,
+          } as Message
+          return updated
+        }
+        return msg
+      }),
+    )
   }, [])
 
   /**
@@ -97,9 +108,9 @@ export function useChatMessages() {
   const addErrorMessage = useCallback(() => {
     const errorMessage = new AIMessage({
       content: '抱歉，发送消息时出现错误。请稍后重试。',
-      id: (Date.now() + 1).toString()
+      id: (Date.now() + 1).toString(),
     }) as Message
-    setMessages(prev => [...prev, errorMessage])
+    setMessages((prev) => [...prev, errorMessage])
   }, [])
 
   /**
@@ -115,15 +126,20 @@ export function useChatMessages() {
    * @param messageId - 消息 ID
    * @param toolCalls - 工具调用数组
    */
-  const updateToolCalls = useCallback((messageId: string, toolCalls: ToolCall[]) => {
-    setMessages(prev => prev.map(msg => {
-      if (msg.id === messageId) {
-        const updatedMsg = { ...msg, toolCallResults: toolCalls } as Message
-        return updatedMsg
-      }
-      return msg
-    }))
-  }, [])
+  const updateToolCalls = useCallback(
+    (messageId: string, toolCalls: ToolCall[]) => {
+      setMessages((prev) =>
+        prev.map((msg) => {
+          if (msg.id === messageId) {
+            const updatedMsg = { ...msg, toolCallResults: toolCalls } as Message
+            return updatedMsg
+          }
+          return msg
+        }),
+      )
+    },
+    [],
+  )
 
   /**
    * 添加工具调用到消息
@@ -131,17 +147,19 @@ export function useChatMessages() {
    * @param toolCall - 要添加的工具调用
    */
   const addToolCall = useCallback((messageId: string, toolCall: ToolCall) => {
-    setMessages(prev => prev.map(msg => {
-      if (msg.id === messageId) {
-        const existing = msg.toolCallResults || []
-        const updatedMsg = {
-          ...msg,
-          toolCallResults: [...existing, toolCall]
-        } as Message
-        return updatedMsg
-      }
-      return msg
-    }))
+    setMessages((prev) =>
+      prev.map((msg) => {
+        if (msg.id === messageId) {
+          const existing = msg.toolCallResults || []
+          const updatedMsg = {
+            ...msg,
+            toolCallResults: [...existing, toolCall],
+          } as Message
+          return updatedMsg
+        }
+        return msg
+      }),
+    )
   }, [])
 
   /**
@@ -150,18 +168,23 @@ export function useChatMessages() {
    * @param toolName - 工具名称
    * @param output - 工具输出结果
    */
-  const updateToolResult = useCallback((messageId: string, toolName: string, output: any) => {
-    setMessages(prev => prev.map(msg => {
-      if (msg.id === messageId) {
-        const toolCalls = msg.toolCallResults || []
-        const updatedToolCalls = toolCalls.map(tc =>
-          tc.name === toolName ? { ...tc, output } : tc
-        )
-        return { ...msg, toolCallResults: updatedToolCalls } as Message
-      }
-      return msg
-    }))
-  }, [])
+  const updateToolResult = useCallback(
+    (messageId: string, toolName: string, output: any) => {
+      setMessages((prev) =>
+        prev.map((msg) => {
+          if (msg.id === messageId) {
+            const toolCalls = msg.toolCallResults || []
+            const updatedToolCalls = toolCalls.map((tc) =>
+              tc.name === toolName ? { ...tc, output } : tc,
+            )
+            return { ...msg, toolCallResults: updatedToolCalls } as Message
+          }
+          return msg
+        }),
+      )
+    },
+    [],
+  )
 
   /**
    * 更新工具调用错误
@@ -169,18 +192,23 @@ export function useChatMessages() {
    * @param toolName - 工具名称
    * @param error - 错误信息
    */
-  const updateToolError = useCallback((messageId: string, toolName: string, error: string) => {
-    setMessages(prev => prev.map(msg => {
-      if (msg.id === messageId) {
-        const toolCalls = msg.toolCallResults || []
-        const updatedToolCalls = toolCalls.map(tc =>
-          tc.name === toolName ? { ...tc, error } : tc
-        )
-        return { ...msg, toolCallResults: updatedToolCalls } as Message
-      }
-      return msg
-    }))
-  }, [])
+  const updateToolError = useCallback(
+    (messageId: string, toolName: string, error: string) => {
+      setMessages((prev) =>
+        prev.map((msg) => {
+          if (msg.id === messageId) {
+            const toolCalls = msg.toolCallResults || []
+            const updatedToolCalls = toolCalls.map((tc) =>
+              tc.name === toolName ? { ...tc, error } : tc,
+            )
+            return { ...msg, toolCallResults: updatedToolCalls } as Message
+          }
+          return msg
+        }),
+      )
+    },
+    [],
+  )
 
   /**
    * 加载历史消息
@@ -209,6 +237,6 @@ export function useChatMessages() {
     updateToolCalls,
     addToolCall,
     updateToolResult,
-    updateToolError
+    updateToolError,
   }
 }

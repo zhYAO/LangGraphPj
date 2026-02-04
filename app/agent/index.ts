@@ -1,5 +1,5 @@
 // 聊天机器人
-export { getApp } from './chatbot';
+export { getApp } from './chatbot'
 
 // 统一工具配置
 export {
@@ -12,7 +12,7 @@ export {
   getDefaultToolsForEnv,
   environmentDefaults,
   unifiedToolsConfig,
-} from './config/unified-tools.config';
+} from './config/unified-tools.config'
 
 // 类型导出
-export type { ToolType, UnifiedToolConfig } from './types/tool.types';
+export type { ToolType, UnifiedToolConfig } from './types/tool.types'

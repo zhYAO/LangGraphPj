@@ -1,8 +1,8 @@
-import { z } from 'zod';
-import { ToolConfig } from '../types/tool.types';
+import { z } from 'zod'
+import { ToolConfig } from '../types/tool.types'
 
 interface WeatherParams {
-  city: string;
+  city: string
 }
 
 // 城市名称到高德地图城市编码的映射
@@ -45,7 +45,7 @@ const cityCodeMap: Record<string, string> = {
   拉萨: '540100',
   海口: '460100',
   三亚: '460200',
-};
+}
 
 export const weatherTool: ToolConfig<WeatherParams> = {
   name: 'weather',
@@ -55,18 +55,18 @@ export const weatherTool: ToolConfig<WeatherParams> = {
     city: z.string().describe('要查询天气的城市名称'),
   }),
   handler: async (params?: WeatherParams) => {
-    if (!params) return '';
-    const { city } = params;
+    if (!params) return ''
+    const { city } = params
 
-    const apiKey = '6b621560b933551899549c23bafea1d0';
+    const apiKey = '6b621560b933551899549c23bafea1d0'
     if (!apiKey) {
-      return '❌ 错误：未配置高德地图 API Key，请在环境变量中设置 AMAP_API_KEY';
+      return '❌ 错误：未配置高德地图 API Key，请在环境变量中设置 AMAP_API_KEY'
     }
 
     // 获取城市编码
-    const cityCode = cityCodeMap[city];
+    const cityCode = cityCodeMap[city]
     if (!cityCode) {
-      return `❌ 抱歉，暂不支持查询"${city}"的天气信息。\n\n支持的城市包括：${Object.keys(cityCodeMap).join('、')}`;
+      return `❌ 抱歉，暂不支持查询"${city}"的天气信息。\n\n支持的城市包括：${Object.keys(cityCodeMap).join('、')}`
     }
 
     try {
@@ -76,21 +76,21 @@ export const weatherTool: ToolConfig<WeatherParams> = {
         {
           method: 'GET',
           signal: AbortSignal.timeout(5000), // 5秒超时
-        }
-      );
+        },
+      )
 
       if (!response.ok) {
-        return `❌ 天气查询失败：HTTP ${response.status}`;
+        return `❌ 天气查询失败：HTTP ${response.status}`
       }
 
-      const data = await response.json();
+      const data = await response.json()
 
       // 检查 API 返回状态
       if (data.status !== '1' || !data.lives || data.lives.length === 0) {
-        return `❌ 天气查询失败：${data.info || '未知错误'}`;
+        return `❌ 天气查询失败：${data.info || '未知错误'}`
       }
 
-      const weather = data.lives[0];
+      const weather = data.lives[0]
 
       // 格式化天气信息
       return `${city}的天气情况：
@@ -99,20 +99,19 @@ export const weatherTool: ToolConfig<WeatherParams> = {
 💨 风向：${weather.winddirection}风
 🌪️ 风力：${weather.windpower}级
 💧 湿度：${weather.humidity}%
-📅 发布时间：${weather.reporttime}`;
+📅 发布时间：${weather.reporttime}`
     } catch (error) {
       if (error instanceof Error) {
         if (error.name === 'AbortError' || error.name === 'TimeoutError') {
-          return `❌ 天气查询超时，请稍后重试`;
+          return `❌ 天气查询超时，请稍后重试`
         }
-        return `❌ 天气查询失败：${error.message}`;
+        return `❌ 天气查询失败：${error.message}`
       }
-      return `❌ 天气查询失败：未知错误`;
+      return `❌ 天气查询失败：未知错误`
     }
   },
   options: {
     timeout: 5000,
     apiKey: process.env.AMAP_API_KEY,
   },
-};
-
+}

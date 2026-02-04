@@ -1,7 +1,7 @@
-import '../../utils/loadEnv';
-import { NextRequest, NextResponse } from 'next/server';
-import { chatService } from '@/app/services';
-import { withAuth } from '@/app/middleware/auth';
+import '../../utils/loadEnv'
+import { NextRequest, NextResponse } from 'next/server'
+import { chatService } from '@/app/services'
+import { withAuth } from '@/app/middleware/auth'
 
 /**
  * POST /api/chat
@@ -10,14 +10,14 @@ import { withAuth } from '@/app/middleware/auth';
 export const POST = withAuth(async (request: NextRequest, auth) => {
   try {
     // 解析 JSON 请求体
-    const body = await request.json();
-    const { message, thread_id, tools, model } = body;
+    const body = await request.json()
+    const { message, thread_id, tools, model } = body
 
     if (!message) {
-      return NextResponse.json({ error: '无效的消息格式' }, { status: 400 });
+      return NextResponse.json({ error: '无效的消息格式' }, { status: 400 })
     }
 
-    console.log('收到请求 - 模型:', model, '工具:', tools);
+    console.log('收到请求 - 模型:', model, '工具:', tools)
 
     // 获取或创建线程 ID
     const { threadId, isNewSession } = chatService.getOrCreateThreadId({
@@ -27,7 +27,7 @@ export const POST = withAuth(async (request: NextRequest, auth) => {
       model,
       userId: auth.user.id,
       authenticatedClient: auth.client,
-    });
+    })
 
     // 创建流式响应
     const stream = new ReadableStream({
@@ -35,28 +35,35 @@ export const POST = withAuth(async (request: NextRequest, auth) => {
         try {
           // 使用 service 层的流式响应生成器
           for await (const data of chatService.streamChatResponse(
-            { message, thread_id, tools, model, userId: auth.user.id, authenticatedClient: auth.client },
+            {
+              message,
+              thread_id,
+              tools,
+              model,
+              userId: auth.user.id,
+              authenticatedClient: auth.client,
+            },
             threadId,
-            isNewSession
+            isNewSession,
           )) {
-            const dataStr = JSON.stringify(data) + '\n';
-            controller.enqueue(new TextEncoder().encode(dataStr));
+            const dataStr = JSON.stringify(data) + '\n'
+            controller.enqueue(new TextEncoder().encode(dataStr))
           }
 
-          controller.close();
+          controller.close()
         } catch (error) {
-          console.error('流式聊天错误:', error);
+          console.error('流式聊天错误:', error)
           const errorData =
             JSON.stringify({
               type: 'error',
               error: '服务器内部错误',
               message: '抱歉，处理你的请求时出现了问题。请稍后重试。',
-            }) + '\n';
-          controller.enqueue(new TextEncoder().encode(errorData));
-          controller.close();
+            }) + '\n'
+          controller.enqueue(new TextEncoder().encode(errorData))
+          controller.close()
         }
       },
-    });
+    })
 
     // 返回流式响应
     return new Response(stream, {
@@ -66,18 +73,18 @@ export const POST = withAuth(async (request: NextRequest, auth) => {
         'Cache-Control': 'no-cache',
         Connection: 'keep-alive',
       },
-    });
+    })
   } catch (error) {
-    console.error('聊天 API 错误:', error);
+    console.error('聊天 API 错误:', error)
     return NextResponse.json(
       {
         error: '服务器内部错误',
         response: '抱歉，处理你的请求时出现了问题。请稍后重试。',
       },
-      { status: 500 }
-    );
+      { status: 500 },
+    )
   }
-});
+})
 
 /**
  * GET /api/chat
@@ -85,8 +92,8 @@ export const POST = withAuth(async (request: NextRequest, auth) => {
  */
 export const GET = withAuth(async (request: NextRequest, auth) => {
   // 判断是否为历史记录请求
-  const { searchParams } = new URL(request.url);
-  const thread_id = searchParams.get('thread_id');
+  const { searchParams } = new URL(request.url)
+  const thread_id = searchParams.get('thread_id')
 
   if (thread_id) {
     try {
@@ -94,14 +101,14 @@ export const GET = withAuth(async (request: NextRequest, auth) => {
       const result = await chatService.getChatHistory({
         thread_id,
         userId: auth.user.id,
-        authenticatedClient: auth.client
-      });
-      return NextResponse.json(result);
+        authenticatedClient: auth.client,
+      })
+      return NextResponse.json(result)
     } catch (e) {
       return NextResponse.json(
         { error: '获取历史记录失败', detail: String(e) },
-        { status: 500 }
-      );
+        { status: 500 },
+      )
     }
   }
 
@@ -113,5 +120,5 @@ export const GET = withAuth(async (request: NextRequest, auth) => {
       chat: 'POST /api/chat (流式响应)',
       history: 'GET /api/chat?thread_id=xxx (获取历史记录)',
     },
-  });
-});
+  })
+})

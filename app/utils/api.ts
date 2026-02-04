@@ -11,7 +11,7 @@
  */
 export async function fetchWithAuth(
   url: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<Response> {
   // 构建请求头
   const headers = new Headers(options.headers || {})
@@ -20,7 +20,7 @@ export async function fetchWithAuth(
   // 发送请求（Cookie 由浏览器自动携带）
   return fetch(url, {
     ...options,
-    headers
+    headers,
   })
 }
 
@@ -29,7 +29,7 @@ export async function fetchWithAuth(
  */
 export async function get<T = any>(
   url: string,
-  options?: Omit<RequestInit, 'method' | 'body'>
+  options?: Omit<RequestInit, 'method' | 'body'>,
 ): Promise<T> {
   const response = await fetchWithAuth(url, { ...options, method: 'GET' })
 
@@ -46,12 +46,12 @@ export async function get<T = any>(
 export async function post<T = any>(
   url: string,
   data?: any,
-  options?: Omit<RequestInit, 'method' | 'body'>
+  options?: Omit<RequestInit, 'method' | 'body'>,
 ): Promise<T> {
   const response = await fetchWithAuth(url, {
     ...options,
     method: 'POST',
-    body: data ? JSON.stringify(data) : undefined
+    body: data ? JSON.stringify(data) : undefined,
   })
 
   if (!response.ok) {
@@ -67,12 +67,12 @@ export async function post<T = any>(
 export async function put<T = any>(
   url: string,
   data?: any,
-  options?: Omit<RequestInit, 'method' | 'body'>
+  options?: Omit<RequestInit, 'method' | 'body'>,
 ): Promise<T> {
   const response = await fetchWithAuth(url, {
     ...options,
     method: 'PUT',
-    body: data ? JSON.stringify(data) : undefined
+    body: data ? JSON.stringify(data) : undefined,
   })
 
   if (!response.ok) {
@@ -88,12 +88,12 @@ export async function put<T = any>(
 export async function patch<T = any>(
   url: string,
   data?: any,
-  options?: Omit<RequestInit, 'method' | 'body'>
+  options?: Omit<RequestInit, 'method' | 'body'>,
 ): Promise<T> {
   const response = await fetchWithAuth(url, {
     ...options,
     method: 'PATCH',
-    body: data ? JSON.stringify(data) : undefined
+    body: data ? JSON.stringify(data) : undefined,
   })
 
   if (!response.ok) {
@@ -109,12 +109,12 @@ export async function patch<T = any>(
 export async function del<T = any>(
   url: string,
   data?: any,
-  options?: Omit<RequestInit, 'method' | 'body'>
+  options?: Omit<RequestInit, 'method' | 'body'>,
 ): Promise<T> {
   const response = await fetchWithAuth(url, {
     ...options,
     method: 'DELETE',
-    body: data ? JSON.stringify(data) : undefined
+    body: data ? JSON.stringify(data) : undefined,
   })
 
   if (!response.ok) {
@@ -131,12 +131,12 @@ export async function del<T = any>(
 export async function streamPost(
   url: string,
   data?: any,
-  options?: Omit<RequestInit, 'method' | 'body'>
+  options?: Omit<RequestInit, 'method' | 'body'>,
 ): Promise<Response> {
   const response = await fetchWithAuth(url, {
     ...options,
     method: 'POST',
-    body: data ? JSON.stringify(data) : undefined
+    body: data ? JSON.stringify(data) : undefined,
   })
 
   if (!response.ok) {

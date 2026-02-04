@@ -1,40 +1,25 @@
-'use client';
+'use client'
 
 interface ToolBadgeProps {
-  name: string;
-  icon?: string;
-  onRemove?: () => void;
+  name: string
+  icon?: string
+  onRemove?: () => void
 }
 
 export default function ToolBadge({ name, icon, onRemove }: ToolBadgeProps) {
   return (
-    <span
-      className="
-        inline-flex items-center gap-1.5 px-2.5 py-1
-        bg-gradient-to-r from-blue-500 to-purple-600
-        text-white text-xs font-medium
-        rounded-full
-        transition-all duration-200
-        hover:shadow-md
-      "
-    >
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 px-2.5 py-1 text-xs font-medium text-white transition-all duration-200 hover:shadow-md">
       {icon && <span className="text-sm">{icon}</span>}
       <span>{name}</span>
       {onRemove && (
         <button
           type="button"
           onClick={onRemove}
-          className="
-            ml-0.5 w-4 h-4
-            flex items-center justify-center
-            rounded-full
-            hover:bg-white/20
-            transition-colors duration-150
-          "
+          className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full transition-colors duration-150 hover:bg-white/20"
           aria-label={`移除 ${name}`}
         >
           <svg
-            className="w-3 h-3"
+            className="h-3 w-3"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -49,5 +34,5 @@ export default function ToolBadge({ name, icon, onRemove }: ToolBadgeProps) {
         </button>
       )}
     </span>
-  );
+  )
 }

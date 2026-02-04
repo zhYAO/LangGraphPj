@@ -1,7 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, ChevronRight, Wrench, CheckCircle, XCircle, Loader2 } from 'lucide-react'
+import {
+  ChevronDown,
+  ChevronRight,
+  Wrench,
+  CheckCircle,
+  XCircle,
+  Loader2,
+} from 'lucide-react'
 import type { ToolCall } from './MessageBubble'
 
 interface ToolCallDisplayProps {
@@ -12,7 +19,7 @@ export function ToolCallDisplay({ toolCalls }: ToolCallDisplayProps) {
   const [expandedTools, setExpandedTools] = useState<Set<string>>(new Set())
 
   const toggleTool = (toolId: string) => {
-    setExpandedTools(prev => {
+    setExpandedTools((prev) => {
       const next = new Set(prev)
       if (next.has(toolId)) {
         next.delete(toolId)
@@ -38,50 +45,50 @@ export function ToolCallDisplay({ toolCalls }: ToolCallDisplayProps) {
         return (
           <div
             key={toolCall.id}
-            className="border border-white/10 rounded-lg overflow-hidden bg-white/5"
+            className="overflow-hidden rounded-lg border border-white/10 bg-white/5"
           >
             {/* 工具调用头部 - 可点击折叠/展开 */}
             <button
               onClick={() => toggleTool(toolCall.id)}
-              className="w-full px-3 py-2 flex items-center gap-2 hover:bg-white/5 transition-colors text-left"
+              className="flex w-full items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-white/5"
             >
               {/* 折叠/展开图标 */}
               {isExpanded ? (
-                <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                <ChevronDown className="h-4 w-4 flex-shrink-0 text-slate-400" />
               ) : (
-                <ChevronRight className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                <ChevronRight className="h-4 w-4 flex-shrink-0 text-slate-400" />
               )}
 
               {/* 工具图标 */}
-              <Wrench className="w-4 h-4 text-blue-400 flex-shrink-0" />
+              <Wrench className="h-4 w-4 flex-shrink-0 text-blue-400" />
 
               {/* 工具名称 */}
-              <span className="text-sm font-medium text-slate-200 flex-1">
+              <span className="flex-1 text-sm font-medium text-slate-200">
                 {toolCall.name}
               </span>
 
               {/* 状态指示器 */}
               {isExecuting && (
-                <Loader2 className="w-4 h-4 text-yellow-400 animate-spin flex-shrink-0" />
+                <Loader2 className="h-4 w-4 flex-shrink-0 animate-spin text-yellow-400" />
               )}
               {hasOutput && (
-                <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
+                <CheckCircle className="h-4 w-4 flex-shrink-0 text-green-400" />
               )}
               {hasError && (
-                <XCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                <XCircle className="h-4 w-4 flex-shrink-0 text-red-400" />
               )}
             </button>
 
             {/* 展开的详细信息 */}
             {isExpanded && (
-              <div className="px-3 pb-3 space-y-2 text-sm">
+              <div className="space-y-2 px-3 pb-3 text-sm">
                 {/* 输入参数 */}
                 {toolCall.args && Object.keys(toolCall.args).length > 0 && (
                   <div>
-                    <div className="text-xs font-semibold text-slate-400 mb-1">
+                    <div className="mb-1 text-xs font-semibold text-slate-400">
                       输入参数:
                     </div>
-                    <pre className="bg-black/30 rounded p-2 overflow-x-auto text-xs text-slate-300">
+                    <pre className="overflow-x-auto rounded bg-black/30 p-2 text-xs text-slate-300">
                       {JSON.stringify(toolCall.args, null, 2)}
                     </pre>
                   </div>
@@ -90,10 +97,10 @@ export function ToolCallDisplay({ toolCalls }: ToolCallDisplayProps) {
                 {/* 输出结果 */}
                 {hasOutput && (
                   <div>
-                    <div className="text-xs font-semibold text-green-400 mb-1">
+                    <div className="mb-1 text-xs font-semibold text-green-400">
                       输出结果:
                     </div>
-                    <pre className="bg-black/30 rounded p-2 overflow-x-auto text-xs text-slate-300">
+                    <pre className="overflow-x-auto rounded bg-black/30 p-2 text-xs text-slate-300">
                       {typeof toolCall.output === 'string'
                         ? toolCall.output
                         : JSON.stringify(toolCall.output, null, 2)}
@@ -104,10 +111,10 @@ export function ToolCallDisplay({ toolCalls }: ToolCallDisplayProps) {
                 {/* 错误信息 */}
                 {hasError && (
                   <div>
-                    <div className="text-xs font-semibold text-red-400 mb-1">
+                    <div className="mb-1 text-xs font-semibold text-red-400">
                       错误信息:
                     </div>
-                    <pre className="bg-red-900/20 rounded p-2 overflow-x-auto text-xs text-red-300">
+                    <pre className="overflow-x-auto rounded bg-red-900/20 p-2 text-xs text-red-300">
                       {toolCall.error}
                     </pre>
                   </div>

@@ -11,11 +11,11 @@ module.exports = {
       max_memory_restart: '1G',
       env: {
         NODE_ENV: 'production',
-        PORT: 80
+        PORT: 80,
       },
       env_production: {
         NODE_ENV: 'production',
-        PORT: 80
+        PORT: 80,
       },
       error_file: './logs/err.log',
       out_file: './logs/out.log',
@@ -25,7 +25,7 @@ module.exports = {
       merge_logs: true,
       kill_timeout: 30000,
       wait_ready: true,
-      listen_timeout: 10000
-    }
-  ]
-};
+      listen_timeout: 10000,
+    },
+  ],
+}

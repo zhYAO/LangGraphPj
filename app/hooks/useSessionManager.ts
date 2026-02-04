@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { useState, useCallback, useEffect } from 'react'
 import { get, post, del as deleteReq, patch } from '@/app/utils/api'
@@ -128,7 +128,7 @@ export function useSessionManager() {
         console.error('删除会话失败:', error)
       }
     },
-    [sessionId, fetchSessions, createSession]
+    [sessionId, fetchSessions, createSession],
   )
 
   /**
@@ -149,7 +149,7 @@ export function useSessionManager() {
         console.error('重命名会话失败:', error)
       }
     },
-    [fetchSessions]
+    [fetchSessions],
   )
 
   /**
@@ -195,7 +195,7 @@ export function useSessionManager() {
         console.error('更新会话名称失败:', error)
       }
     },
-    [sessionId, hasUserMessage, fetchSessions]
+    [sessionId, hasUserMessage, fetchSessions],
   )
 
   /**

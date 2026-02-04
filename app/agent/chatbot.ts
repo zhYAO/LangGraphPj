@@ -52,7 +52,7 @@ async function createWorkflow(modelId?: string, toolIds?: string[]) {
       console.error('chatbotNode 错误详情:', error)
       console.error(
         '错误栈:',
-        error instanceof Error ? error.stack : '无栈信息'
+        error instanceof Error ? error.stack : '无栈信息',
       )
       throw error
     }
@@ -78,7 +78,7 @@ async function createWorkflow(modelId?: string, toolIds?: string[]) {
   // 构建 workflow
   const workflow = new StateGraph(MessagesAnnotation).addNode(
     'chatbot',
-    chatbotNode
+    chatbotNode,
   )
 
   // 如果有工具，添加工具节点和条件路由
@@ -132,7 +132,7 @@ export const getApp = async (
   modelId?: string,
   toolIds?: string[],
   client?: SupabaseClient,
-  userId?: string
+  userId?: string,
 ) => {
   const checkpointerInstance = getCheckpointer(client, userId)
 

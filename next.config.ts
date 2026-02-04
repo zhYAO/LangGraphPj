@@ -1,4 +1,4 @@
-import type { NextConfig } from 'next';
+import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   reactStrictMode: false, // 禁用 React 严格模式
@@ -11,6 +11,6 @@ const nextConfig: NextConfig = {
     // 使用系统 TLS 证书以解决网络问题
     turbopackUseSystemTlsCerts: true,
   },
-};
+}
 
-export default nextConfig;
+export default nextConfig

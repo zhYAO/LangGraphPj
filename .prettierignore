@@ -1,0 +1,19 @@
+# Dependencies
+node_modules
+dist
+.next
+out
+build
+
+# Project files
+public
+*.md
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Environment variables
+.env*
+
+# Logs
+*.log

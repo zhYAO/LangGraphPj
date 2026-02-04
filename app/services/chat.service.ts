@@ -1,8 +1,15 @@
-import { HumanMessage, mapStoredMessageToChatMessage } from '@langchain/core/messages';
-import { getApp } from '@/app/agent/chatbot';
-import { createSession } from '@/app/database';
-import { randomUUID } from 'crypto';
-import type { ChatMessageInput, ChatHistoryQuery, ChatHistoryResult } from './types';
+import {
+  HumanMessage,
+  mapStoredMessageToChatMessage,
+} from '@langchain/core/messages'
+import { getApp } from '@/app/agent/chatbot'
+import { createSession } from '@/app/database'
+import { randomUUID } from 'crypto'
+import type {
+  ChatMessageInput,
+  ChatHistoryQuery,
+  ChatHistoryResult,
+} from './types'
 
 /**
  * ChatService
@@ -12,33 +19,35 @@ export class ChatService {
   /**
    * 解析用户消息，转换为 LangChain 消息对象
    */
-  parseUserMessage(message: string | any[] | Record<string, any>): HumanMessage {
+  parseUserMessage(
+    message: string | any[] | Record<string, any>,
+  ): HumanMessage {
     if (typeof message === 'string') {
       // 字符串格式：创建 HumanMessage
-      return new HumanMessage(message);
+      return new HumanMessage(message)
     }
 
     if (Array.isArray(message)) {
       // 数组格式：多模态内容（文本 + 图片）
-      return new HumanMessage({ content: message });
+      return new HumanMessage({ content: message })
     }
 
     if (typeof message === 'object' && message !== null) {
       // 对象格式：尝试重建 LangChain 消息
       try {
-        return mapStoredMessageToChatMessage(message);
+        return mapStoredMessageToChatMessage(message)
       } catch (error) {
-        console.error('重建消息对象失败:', error);
+        console.error('重建消息对象失败:', error)
         // 如果重建失败，尝试提取 content
-        const content = message.content || message.kwargs?.content;
+        const content = message.content || message.kwargs?.content
         if (!content) {
-          throw new Error('消息对象缺少 content 字段');
+          throw new Error('消息对象缺少 content 字段')
         }
-        return new HumanMessage(content);
+        return new HumanMessage(content)
       }
     }
 
-    throw new Error('无效的消息格式');
+    throw new Error('无效的消息格式')
   }
 
   /**
@@ -46,53 +55,63 @@ export class ChatService {
    */
   extractSessionName(message: string | any[] | Record<string, any>): string {
     if (typeof message === 'string') {
-      return message || '新会话';
+      return message || '新会话'
     }
 
     if (Array.isArray(message)) {
       // 从多模态内容中提取文本
-      const textContent = message.find(item => item.type === 'text');
-      return textContent?.text || '新会话';
+      const textContent = message.find((item) => item.type === 'text')
+      return textContent?.text || '新会话'
     }
 
     if (typeof message === 'object' && message !== null) {
       // 从消息对象中提取文本
-      const content = message.content || message.kwargs?.content;
+      const content = message.content || message.kwargs?.content
       if (typeof content === 'string') {
-        return content || '新会话';
+        return content || '新会话'
       }
       if (Array.isArray(content)) {
-        const textContent = content.find(item => item.type === 'text');
-        return textContent?.text || '新会话';
+        const textContent = content.find((item) => item.type === 'text')
+        return textContent?.text || '新会话'
       }
     }
 
-    return '新会话';
+    return '新会话'
   }
 
   /**
    * 获取或创建会话 ID
    */
-  getOrCreateThreadId(input: ChatMessageInput): { threadId: string; isNewSession: boolean } {
+  getOrCreateThreadId(input: ChatMessageInput): {
+    threadId: string
+    isNewSession: boolean
+  } {
     const threadId =
       typeof input.thread_id === 'string' && input.thread_id
         ? input.thread_id
-        : randomUUID();
-    const isNewSession = !input.thread_id;
+        : randomUUID()
+    const isNewSession = !input.thread_id
 
     // 如果是新会话，在数据库中创建会话记录
     if (isNewSession) {
-      const sessionName = this.extractSessionName(input.message);
+      const sessionName = this.extractSessionName(input.message)
 
       // 检查是否有 userId 和 authenticatedClient
       if (input.userId && input.authenticatedClient) {
-        createSession(threadId, sessionName, input.userId, input.authenticatedClient);
+        createSession(
+          threadId,
+          sessionName,
+          input.userId,
+          input.authenticatedClient,
+        )
       } else {
-        console.warn('创建会话时缺少 userId 或 authenticatedClient，会话可能无法正确创建');
+        console.warn(
+          '创建会话时缺少 userId 或 authenticatedClient，会话可能无法正确创建',
+        )
       }
     }
 
-    return { threadId, isNewSession };
+    return { threadId, isNewSession }
   }
 
   /**
@@ -101,51 +120,56 @@ export class ChatService {
   async *streamChatResponse(
     input: ChatMessageInput,
     threadId: string,
-    isNewSession: boolean
+    isNewSession: boolean,
   ): AsyncGenerator<any, void, unknown> {
     // 解析用户消息
-    const userMessage = this.parseUserMessage(input.message);
+    const userMessage = this.parseUserMessage(input.message)
 
     // 配置线程
-    const threadConfig = { configurable: { thread_id: threadId } };
+    const threadConfig = { configurable: { thread_id: threadId } }
 
     // 如果是新创建的会话，立即发送 sessionId
     if (isNewSession) {
       yield {
         type: 'session',
         thread_id: threadId,
-      };
+      }
     }
 
     // 获取应用实例，传入模型和工具配置
-    const app = await getApp(input.model, input.tools, input.authenticatedClient, input.userId);
+    const app = await getApp(
+      input.model,
+      input.tools,
+      input.authenticatedClient,
+      input.userId,
+    )
 
-    let completeMessage = null;
+    let completeMessage = null
 
     // 使用 streamEvents 获取流式响应
     for await (const event of app.streamEvents(
       { messages: [userMessage] },
-      { version: 'v2', ...threadConfig }
+      { version: 'v2', ...threadConfig },
     )) {
       if (event.event === 'on_chat_model_stream') {
-        const chunk = event.data?.chunk;
+        const chunk = event.data?.chunk
         if (chunk?.content) {
           // 发送内容片段
           yield {
             type: 'chunk',
             content: chunk.content,
-          };
+          }
         }
         // 保存完整的消息对象
-        completeMessage = chunk;
+        completeMessage = chunk
       } else if (event.event === 'on_chat_model_end') {
-        const output = event.data?.output;
+        const output = event.data?.output
         if (output?.tool_calls && output.tool_calls.length > 0) {
           // 透传原始 tool_calls 数据
           yield {
             type: 'tool_calls',
             tool_calls: output.tool_calls,
-          };
+          }
         }
       } else if (event.event === 'on_tool_end') {
         // 透传完整的工具执行信息
@@ -153,28 +177,28 @@ export class ChatService {
           type: 'tool_result',
           name: event.name,
           data: event.data,
-        };
+        }
       } else if (event.event === 'on_tool_error') {
         // 透传完整的错误信息
         yield {
           type: 'tool_error',
           name: event.name,
           data: event.data,
-        };
+        }
       }
     }
 
     // 获取最终状态，包含完整的消息历史
-    const finalState = await app.getState(threadConfig);
-    const allMessages = finalState?.values?.messages || [];
+    const finalState = await app.getState(threadConfig)
+    const allMessages = finalState?.values?.messages || []
 
     // 序列化消息对象
     const serializedMessage = completeMessage
       ? JSON.parse(JSON.stringify(completeMessage))
-      : null;
+      : null
     const serializedMessages = allMessages.map((msg: any) =>
-      JSON.parse(JSON.stringify(msg))
-    );
+      JSON.parse(JSON.stringify(msg)),
+    )
 
     // 发送结束标记
     yield {
@@ -183,35 +207,35 @@ export class ChatService {
       thread_id: threadId,
       message: serializedMessage,
       messages: serializedMessages,
-    };
+    }
   }
 
   /**
    * 获取聊天历史
    */
   async getChatHistory(query: ChatHistoryQuery): Promise<ChatHistoryResult> {
-    const { thread_id, authenticatedClient, userId } = query;
+    const { thread_id, authenticatedClient, userId } = query
 
     // 获取应用实例
-    const app = await getApp(undefined, undefined, authenticatedClient, userId);
+    const app = await getApp(undefined, undefined, authenticatedClient, userId)
 
     // 通过 graph.getState 获取历史
     const state = await app.getState({
       configurable: { thread_id },
-    });
+    })
 
     // 序列化消息对象
-    const messages = state?.values?.messages || [];
+    const messages = state?.values?.messages || []
     const serializedMessages = messages.map((msg: any) =>
-      JSON.parse(JSON.stringify(msg))
-    );
+      JSON.parse(JSON.stringify(msg)),
+    )
 
     return {
       thread_id,
       history: serializedMessages,
-    };
+    }
   }
 }
 
 // 导出单例实例
-export const chatService = new ChatService();
+export const chatService = new ChatService()

@@ -4,53 +4,53 @@
 
 // 聊天相关类型
 export interface ChatMessageInput {
-  message: string | any[] | Record<string, any>;
-  thread_id?: string;
-  tools?: string[];
-  model?: string;
-  userId?: string; // 用户 ID,用于创建会话
-  authenticatedClient?: any; // 带认证的 Supabase 客户端
+  message: string | any[] | Record<string, any>
+  thread_id?: string
+  tools?: string[]
+  model?: string
+  userId?: string // 用户 ID,用于创建会话
+  authenticatedClient?: any // 带认证的 Supabase 客户端
 }
 
 export interface ChatHistoryQuery {
-  thread_id: string;
-  userId?: string;
-  authenticatedClient?: any;
+  thread_id: string
+  userId?: string
+  authenticatedClient?: any
 }
 
 export interface ChatHistoryResult {
-  thread_id: string;
-  history: any[];
+  thread_id: string
+  history: any[]
 }
 
 // 会话管理相关类型
 export interface Session {
-  id: string;
-  name: string;
-  createdAt: number;
-  updatedAt: number;
+  id: string
+  name: string
+  createdAt: number
+  updatedAt: number
 }
 
 export interface CreateSessionInput {
-  name?: string;
+  name?: string
 }
 
 export interface CreateSessionResult {
-  id: string;
+  id: string
 }
 
 export interface DeleteSessionInput {
-  id: string;
+  id: string
 }
 
 export interface UpdateSessionInput {
-  id: string;
-  name: string;
+  id: string
+  name: string
 }
 
 export interface ServiceResult<T = any> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  message?: string;
+  success: boolean
+  data?: T
+  error?: string
+  message?: string
 }

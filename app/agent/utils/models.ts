@@ -1,19 +1,22 @@
-import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
-import { ChatOpenAI } from '@langchain/openai';
+import { ChatGoogleGenerativeAI } from '@langchain/google-genai'
+import { ChatOpenAI } from '@langchain/openai'
 
 /**
  * 创建模型实例（支持多个提供商）
  * @param modelId 模型 ID，格式为 "provider:modelName"，例如 "openai:qwen-max" 或 "google:gemini-2.5-flash"
  * @returns ChatGoogleGenerativeAI 或 ChatOpenAI 实例
  */
-export function createModel(modelId?: string): ChatGoogleGenerativeAI | ChatOpenAI {
+export function createModel(
+  modelId?: string,
+): ChatGoogleGenerativeAI | ChatOpenAI {
   // 解析模型 ID
-  const fullId = modelId || `google:${process.env.GOOGLE_MODEL_NAME || 'gemini-2.5-flash'}`;
+  const fullId =
+    modelId || `google:${process.env.GOOGLE_MODEL_NAME || 'gemini-2.5-flash'}`
   const [provider, modelName] = fullId.includes(':')
     ? fullId.split(':', 2)
-    : ['google', fullId];
+    : ['google', fullId]
 
-  console.log('创建模型实例 - 提供商:', provider, '模型:', modelName);
+  console.log('创建模型实例 - 提供商:', provider, '模型:', modelName)
 
   // 创建对应提供商的模型
   if (provider === 'openai') {
@@ -25,7 +28,7 @@ export function createModel(modelId?: string): ChatGoogleGenerativeAI | ChatOpen
       },
       temperature: 0.7,
       streaming: true,
-    });
+    })
   }
 
   // 默认使用 Google Gemini
@@ -34,5 +37,5 @@ export function createModel(modelId?: string): ChatGoogleGenerativeAI | ChatOpen
     apiKey: process.env.GOOGLE_API_KEY,
     temperature: 0.7,
     streaming: true,
-  });
+  })
 }

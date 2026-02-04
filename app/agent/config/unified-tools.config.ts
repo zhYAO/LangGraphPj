@@ -1,7 +1,7 @@
-import type { UnifiedToolConfig } from '../types/tool.types';
-import { calculatorTool } from '../tools/calculator.tool';
-import { weatherTool } from '../tools/weather.tool';
-import { currentTimeTool } from '../tools/current-time.tool';
+import type { UnifiedToolConfig } from '../types/tool.types'
+import { calculatorTool } from '../tools/calculator.tool'
+import { weatherTool } from '../tools/weather.tool'
+import { currentTimeTool } from '../tools/current-time.tool'
 
 /**
  * 统一工具配置
@@ -109,53 +109,62 @@ export const unifiedToolsConfig: UnifiedToolConfig[] = [
   //     transport: 'stdio',
   //   },
   // },
-];
+]
 
 /**
  * 获取所有启用的工具配置
  */
 export function getEnabledTools(): UnifiedToolConfig[] {
-  return unifiedToolsConfig.filter(tool => tool.enabled);
+  return unifiedToolsConfig.filter((tool) => tool.enabled)
 }
 
 /**
  * 获取自定义工具配置（type = 'custom'）
  */
 export function getCustomTools(): UnifiedToolConfig[] {
-  return unifiedToolsConfig.filter(tool => tool.type === 'custom' && tool.enabled);
+  return unifiedToolsConfig.filter(
+    (tool) => tool.type === 'custom' && tool.enabled,
+  )
 }
 
 /**
  * 获取 LangChain 工具配置（type = 'langchain'）
  */
 export function getLangChainTools(): UnifiedToolConfig[] {
-  return unifiedToolsConfig.filter(tool => tool.type === 'langchain' && tool.enabled);
+  return unifiedToolsConfig.filter(
+    (tool) => tool.type === 'langchain' && tool.enabled,
+  )
 }
 
 /**
  * 获取 MCP 工具配置（type = 'mcp'）
  */
 export function getMCPTools(): UnifiedToolConfig[] {
-  return unifiedToolsConfig.filter(tool => tool.type === 'mcp' && tool.enabled);
+  return unifiedToolsConfig.filter(
+    (tool) => tool.type === 'mcp' && tool.enabled,
+  )
 }
 
 /**
  * 根据 ID 获取工具配置
  */
 export function getToolById(id: string): UnifiedToolConfig | undefined {
-  return unifiedToolsConfig.find(tool => tool.id === id);
+  return unifiedToolsConfig.find((tool) => tool.id === id)
 }
 
 /**
  * 获取 MCP 服务器配置（用于 MultiServerMCPClient）
  */
-export function getMCPServersConfig(): Record<string, {
-  command: string;
-  args: string[];
-  transport?: 'stdio' | 'sse' | 'http';
-}> {
-  const mcpTools = getMCPTools();
-  const config: Record<string, any> = {};
+export function getMCPServersConfig(): Record<
+  string,
+  {
+    command: string
+    args: string[]
+    transport?: 'stdio' | 'sse' | 'http'
+  }
+> {
+  const mcpTools = getMCPTools()
+  const config: Record<string, any> = {}
 
   for (const tool of mcpTools) {
     if (tool.mcpServer && tool.mcpConfig) {
@@ -163,25 +172,44 @@ export function getMCPServersConfig(): Record<string, {
         command: tool.mcpConfig.command,
         args: tool.mcpConfig.args,
         transport: tool.mcpConfig.transport || 'stdio',
-      };
+      }
     }
   }
 
-  return config;
+  return config
 }
 
 /**
  * 获取环境配置中默认启用的工具 ID 列表
  */
 export const environmentDefaults = {
-  development: ['calculator', 'weather', 'current_time', 'tavily', 'sequential-thinking', 'filesystem'],
-  production: ['calculator', 'weather', 'current_time', 'tavily', 'sequential-thinking', 'filesystem'],
+  development: [
+    'calculator',
+    'weather',
+    'current_time',
+    'tavily',
+    'sequential-thinking',
+    'filesystem',
+  ],
+  production: [
+    'calculator',
+    'weather',
+    'current_time',
+    'tavily',
+    'sequential-thinking',
+    'filesystem',
+  ],
   test: ['calculator', 'current_time'],
-};
+}
 
 /**
  * 获取当前环境的默认工具列表
  */
-export function getDefaultToolsForEnv(env: string = process.env.NODE_ENV || 'development'): string[] {
-  return environmentDefaults[env as keyof typeof environmentDefaults] || environmentDefaults.development;
+export function getDefaultToolsForEnv(
+  env: string = process.env.NODE_ENV || 'development',
+): string[] {
+  return (
+    environmentDefaults[env as keyof typeof environmentDefaults] ||
+    environmentDefaults.development
+  )
 }

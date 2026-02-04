@@ -1,5 +1,5 @@
-import { z } from 'zod';
-import { ToolConfig } from '../types/tool.types';
+import { z } from 'zod'
+import { ToolConfig } from '../types/tool.types'
 
 export const currentTimeTool: ToolConfig = {
   name: 'current_time',
@@ -7,7 +7,7 @@ export const currentTimeTool: ToolConfig = {
   enabled: true,
   schema: z.object({}),
   handler: async (_params?: Record<string, never>) => {
-    const now = new Date();
+    const now = new Date()
     return `当前时间: ${now.toLocaleString('zh-CN', {
       timeZone: 'Asia/Shanghai',
       year: 'numeric',
@@ -17,6 +17,6 @@ export const currentTimeTool: ToolConfig = {
       minute: '2-digit',
       second: '2-digit',
       weekday: 'long',
-    })}`;
+    })}`
   },
-};
+}

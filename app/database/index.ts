@@ -9,7 +9,7 @@
  */
 
 // 导出 Supabase 客户端
-export { supabase } from './supabase';
+export { supabase } from './supabase'
 
 // 导出 Sessions 相关操作和类型
 export {
@@ -19,4 +19,4 @@ export {
   getAllSessions,
   updateSessionName,
   deleteSession,
-} from './sessions';
+} from './sessions'

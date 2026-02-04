@@ -17,14 +17,16 @@ import { useSendMessage } from '@/app/hooks/useSendMessage'
 import { Tool } from '@/app/components/ToolSelector'
 
 // 导入工具配置
-import { getEnabledTools } from './agent/config/unified-tools.config';
+import { getEnabledTools } from './agent/config/unified-tools.config'
 
 export default function ChatPage() {
   const chatInputRef = useRef<ChatInputHandle>(null)
 
   // ==================== 模型配置 ====================
   // 从 localStorage 读取保存的模型,如果没有则使用默认值
-  const [currentModel, setCurrentModel] = useState('google:gemini-3-flash-preview')
+  const [currentModel, setCurrentModel] = useState(
+    'google:gemini-3-flash-preview',
+  )
 
   useEffect(() => {
     const savedModel = localStorage.getItem('selectedModel')
@@ -83,7 +85,7 @@ export default function ChatPage() {
     sessionId,
     loadMessages,
     setHasUserMessage,
-    isNewSession
+    isNewSession,
   )
 
   // ==================== 消息发送 ====================
@@ -123,14 +125,9 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-[#eef2f5] font-sans text-gray-800 selection:bg-blue-200">
-      {/* 动态背景 blobs */}
-      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-300/30 rounded-full blur-[100px] animate-pulse"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-blue-300/30 rounded-full blur-[100px] animate-pulse delay-1000"></div>
-      <div className="absolute top-[40%] left-[40%] w-[300px] h-[300px] bg-pink-300/20 rounded-full blur-[80px]"></div>
-
-      {/* 主布局容器 - 增加了 padding 以解决贴边问题 */}
-      <div className="relative flex w-full h-full p-4 md:p-6 lg:p-8 gap-5 lg:gap-6">
+    <div className="relative h-screen w-full overflow-hidden bg-[#eef2f5] font-sans text-gray-800 selection:bg-blue-200">
+      {/* 主布局容器 */}
+      <div className="relative flex h-full w-full gap-5 p-4 md:p-6 lg:gap-6 lg:p-8">
         {/* 左侧会话历史侧边栏 */}
         <SessionSidebar
           currentSessionId={sessionId}
@@ -144,13 +141,13 @@ export default function ChatPage() {
         />
 
         {/* 右侧主体内容区域 */}
-        <main className="flex-1 relative flex flex-col h-full rounded-[20px] bg-white/30 backdrop-blur-2xl border border-white/60 shadow-2xl overflow-hidden">
+        <main className="relative flex h-full flex-1 flex-col overflow-hidden rounded-[20px] border border-white/60 bg-white/30 shadow-2xl backdrop-blur-2xl">
           {/* 顶部导航栏 */}
           <ChatHeader />
 
-          <div className="flex-1 flex flex-col relative overflow-hidden">
+          <div className="relative flex flex-1 flex-col overflow-hidden">
             <div
-              className="flex-1 overflow-y-auto scrollbar-hide scroll-smooth flex flex-col"
+              className="scrollbar-hide flex flex-1 flex-col overflow-y-auto scroll-smooth"
               id="chat-container"
             >
               {/* 消息列表 */}
@@ -163,7 +160,7 @@ export default function ChatPage() {
             </div>
 
             {/* 消息输入框 */}
-            <div className="shrink-0 px-4 md:px-[10%] lg:px-[15%] pb-8 pt-4">
+            <div className="shrink-0 px-4 pt-4 pb-8 md:px-[10%] lg:px-[15%]">
               <ChatInput
                 ref={chatInputRef}
                 onSend={sendMessage}

@@ -3,16 +3,16 @@ import {
   createSession as dbCreateSession,
   deleteSession as dbDeleteSession,
   updateSessionName as dbUpdateSessionName,
-} from '@/app/database/sessions';
-import { randomUUID } from 'crypto';
-import type { SupabaseClient } from '@supabase/supabase-js';
+} from '@/app/database/sessions'
+import { randomUUID } from 'crypto'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import type {
   Session,
   CreateSessionInput,
   CreateSessionResult,
   DeleteSessionInput,
   UpdateSessionInput,
-} from './types';
+} from './types'
 
 /**
  * SessionService
@@ -25,14 +25,14 @@ export class SessionService {
    * @param client Supabase 客户端（可选，用于 RLS 策略）
    */
   async getAllSessions(client?: SupabaseClient): Promise<Session[]> {
-    const sessions = await getAllSessions(client);
+    const sessions = await getAllSessions(client)
     // 转换数据库格式到应用格式
-    return sessions.map(session => ({
+    return sessions.map((session) => ({
       id: session.id,
       name: session.name,
       createdAt: new Date(session.created_at).getTime(),
       updatedAt: new Date(session.created_at).getTime(),
-    }));
+    }))
   }
 
   /**
@@ -44,12 +44,12 @@ export class SessionService {
   async createSession(
     input: CreateSessionInput,
     userId: string,
-    client?: SupabaseClient
+    client?: SupabaseClient,
   ): Promise<CreateSessionResult> {
-    const id = randomUUID();
-    const name = input.name || `新会话-${id.slice(0, 8)}`;
-    await dbCreateSession(id, name, userId, client);
-    return { id };
+    const id = randomUUID()
+    const name = input.name || `新会话-${id.slice(0, 8)}`
+    await dbCreateSession(id, name, userId, client)
+    return { id }
   }
 
   /**
@@ -58,9 +58,9 @@ export class SessionService {
    */
   async deleteSession(input: DeleteSessionInput): Promise<void> {
     if (!input.id) {
-      throw new Error('缺少 id');
+      throw new Error('缺少 id')
     }
-    await dbDeleteSession(input.id);
+    await dbDeleteSession(input.id)
   }
 
   /**
@@ -69,11 +69,11 @@ export class SessionService {
    */
   async updateSessionName(input: UpdateSessionInput): Promise<void> {
     if (!input.id || !input.name) {
-      throw new Error('缺少参数');
+      throw new Error('缺少参数')
     }
-    await dbUpdateSessionName(input.id, input.name);
+    await dbUpdateSessionName(input.id, input.name)
   }
 }
 
 // 导出单例实例
-export const sessionService = new SessionService();
+export const sessionService = new SessionService()

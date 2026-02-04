@@ -28,7 +28,7 @@ export function MarkdownRenderer({
             const isCodeBlock = className && inline !== true
             if (isCodeBlock) {
               return (
-                <div className="rounded-md overflow-hidden">
+                <div className="overflow-hidden rounded-md">
                   <code
                     className={`${className} block break-words whitespace-pre-wrap`}
                     style={{
@@ -46,7 +46,7 @@ export function MarkdownRenderer({
               <code
                 className={`${
                   className || ''
-                } inline bg-zinc-700/50 text-zinc-200 px-1.5 py-0.5 rounded text-sm`}
+                } inline rounded bg-zinc-700/50 px-1.5 py-0.5 text-sm text-zinc-200`}
                 {...props}
               >
                 {children}
@@ -58,7 +58,7 @@ export function MarkdownRenderer({
             return (
               <div className="overflow-hidden">
                 <table
-                  className="table-fixed w-full"
+                  className="w-full table-fixed"
                   style={{ tableLayout: 'fixed', wordBreak: 'break-word' }}
                   {...props}
                 >

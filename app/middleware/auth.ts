@@ -1,32 +1,32 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
 // 初始化 Supabase 客户端（用于服务端鉴权）
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY!
 // const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // Cookie 名称
-const COOKIE_NAME = 'sb-access-token';
+const COOKIE_NAME = 'sb-access-token'
 
 /**
  * 认证用户信息接口
  */
 export interface AuthUser {
-  id: string;
-  email: string;
-  [key: string]: any;
+  id: string
+  email: string
+  [key: string]: any
 }
 
 /**
  * 认证结果接口
  */
 export interface AuthResult {
-  user?: AuthUser | null;
-  token?: string | null;
-  client: any | null;
-  error?: string;
+  user?: AuthUser | null
+  token?: string | null
+  client: any | null
+  error?: string
 }
 
 /**
@@ -37,16 +37,18 @@ export interface AuthResult {
  * @param request - Next.js 请求对象
  * @returns 认证结果
  */
-export async function authenticateRequest(request: NextRequest): Promise<AuthResult> {
+export async function authenticateRequest(
+  request: NextRequest,
+): Promise<AuthResult> {
   try {
     // 1. 优先从 cookie 获取 token
-    let token = request.cookies.get(COOKIE_NAME)?.value;
+    let token = request.cookies.get(COOKIE_NAME)?.value
 
     // 2. 如果 cookie 中没有，尝试从 Authorization header 获取（兼容旧客户端）
     if (!token) {
-      const authHeader = request.headers.get('authorization');
+      const authHeader = request.headers.get('authorization')
       if (authHeader?.startsWith('Bearer ')) {
-        token = authHeader.substring(7);
+        token = authHeader.substring(7)
       }
     }
 
@@ -55,21 +57,21 @@ export async function authenticateRequest(request: NextRequest): Promise<AuthRes
         user: null,
         token: null,
         client: null,
-        error: '缺少认证 token'
-      };
+        error: '缺少认证 token',
+      }
     }
 
     // 3. 验证 token 并获取用户信息
-    const { data, error } = await supabase.auth.getUser();
-    console.log("🚀 ~ authenticateRequest ~ data:", data)
+    const { data, error } = await supabase.auth.getUser()
+    console.log('🚀 ~ authenticateRequest ~ data:', data)
 
     if (error || !data.user) {
       return {
         user: null,
         token: null,
         client: null,
-        error: 'Token 无效或已过期'
-      };
+        error: 'Token 无效或已过期',
+      }
     }
 
     // 4. 创建带有认证的 Supabase 客户端（用于 RLS 策略）
@@ -79,7 +81,7 @@ export async function authenticateRequest(request: NextRequest): Promise<AuthRes
           // Authorization: `Bearer ${token}`,
         },
       },
-    });
+    })
 
     // 5. 返回认证结果
     return {
@@ -89,16 +91,16 @@ export async function authenticateRequest(request: NextRequest): Promise<AuthRes
         // ...data.user.user_metadata
       },
       token: 'mock token',
-      client: authenticatedClient
-    };
+      client: authenticatedClient,
+    }
   } catch (error) {
-    console.error('认证过程出错:', error);
+    console.error('认证过程出错:', error)
     return {
       user: null,
       token: null,
       client: null,
-      error: '认证过程出错'
-    };
+      error: '认证过程出错',
+    }
   }
 }
 
@@ -106,10 +108,7 @@ export async function authenticateRequest(request: NextRequest): Promise<AuthRes
  * 创建未授权响应
  */
 export function unauthorizedResponse(message: string = '未授权') {
-  return NextResponse.json(
-    { error: message },
-    { status: 401 }
-  );
+  return NextResponse.json({ error: message }, { status: 401 })
 }
 
 /**
@@ -119,10 +118,12 @@ export function unauthorizedResponse(message: string = '未授权') {
  * export { middleware as GET } from '@/app/middleware/auth';
  * export { middleware as POST } from '@/app/middleware/auth';
  */
-export function createAuthMiddleware(handler: (request: NextRequest, auth: AuthResult) => Promise<Response>) {
+export function createAuthMiddleware(
+  handler: (request: NextRequest, auth: AuthResult) => Promise<Response>,
+) {
   return async (request: NextRequest): Promise<Response> => {
     // 执行认证
-    const auth = await authenticateRequest(request);
+    const auth = await authenticateRequest(request)
 
     // 如果认证失败,返回 401
     // if (!auth.user) {
@@ -130,16 +131,19 @@ export function createAuthMiddleware(handler: (request: NextRequest, auth: AuthR
     // }
 
     // 认证成功,调用处理器
-    return handler(request, auth);
-  };
+    return handler(request, auth)
+  }
 }
 
-export type AuthedHandler = (request: NextRequest, auth: AuthResult) => Promise<Response>;
+export type AuthedHandler = (
+  request: NextRequest,
+  auth: AuthResult,
+) => Promise<Response>
 
 /**
  * withAuth 是 createAuthMiddleware 的语义化包装
  * 用于路由层“包裹”业务逻辑，实现统一鉴权
  */
 export function withAuth(handler: AuthedHandler) {
-  return createAuthMiddleware(handler);
+  return createAuthMiddleware(handler)
 }
