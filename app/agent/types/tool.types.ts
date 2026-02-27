@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 // 工具类型
-export type ToolType = 'custom' | 'langchain' | 'mcp'
+export type ToolType = 'custom' | 'langchain' | 'mcp' | 'canvas'
 
 // 基础工具配置接口（后端）
 export interface ToolConfig<T = Record<string, unknown>> {
@@ -53,7 +53,7 @@ export interface UnifiedToolConfig {
   description: string // 描述
   icon?: string // 图标 emoji
   enabled: boolean // 是否启用
-  type: ToolType // 工具类型：custom | langchain | mcp
+  type: ToolType // 工具类型：custom | langchain | mcp | canvas
 
   // 自定义工具字段（type = 'custom' 时使用）
   schema?: z.ZodSchema

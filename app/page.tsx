@@ -2,6 +2,7 @@
 
 import { useRef, useMemo, useState, useEffect } from 'react'
 import { availableModels } from '@/app/utils/config'
+import type { CanvasArtifact } from '@/app/canvas/canvas-types';
 
 // 导入组件
 import SessionSidebar from '@/app/components/SessionSidebar'
@@ -9,19 +10,56 @@ import ChatHeader from '@/app/components/ChatHeader'
 import MessageList from '@/app/components/MessageList'
 import { ChatInput, type ChatInputHandle } from '@/app/components/ChatInput'
 import ProtectedRoute from '@/app/components/ProtectedRoute'
+import { CanvasPanel } from '@/app/components/canvas/CanvasPanel';
 
 // 导入自定义 Hooks
 import { useSessionManager } from '@/app/hooks/useSessionManager'
 import { useChatMessages } from '@/app/hooks/useChatMessages'
 import { useChatHistory } from '@/app/hooks/useChatHistory'
 import { useSendMessage } from '@/app/hooks/useSendMessage'
+import { canvasStore } from '@/app/hooks/useCanvasArtifacts';
 import { Tool } from '@/app/components/ToolSelector'
 
 // 导入工具配置
-import { getEnabledTools } from './agent/config/unified-tools.config'
+import { getEnabledTools } from '@/app/agent/config/unified-tools.config'
 
 export default function ChatPage() {
   const chatInputRef = useRef<ChatInputHandle>(null)
+
+  // Canvas Panel 状态
+  const [activeArtifact, setActiveArtifact] = useState<CanvasArtifact | null>(null);
+  const [isCanvasVisible, setIsCanvasVisible] = useState(false);
+
+  // 监听 canvas store 变化
+  useEffect(() => {
+    const unsubscribe = canvasStore.subscribe(() => {
+      const artifact = canvasStore.getActiveArtifact();
+      setActiveArtifact(artifact ?? null);
+      setIsCanvasVisible(canvasStore.getIsCanvasVisible());
+    });
+    return unsubscribe;
+  }, []);
+
+  // 处理关闭 Canvas Panel
+  const handleCloseCanvas = () => {
+    canvasStore.setIsCanvasVisible(false);
+    canvasStore.setActiveArtifactId(null);
+  };
+
+  // 处理代码更新
+  const handleUpdateCode = (messageId: string, artifactId: string, code: string) => {
+    const artifact = canvasStore.getArtifact(messageId, artifactId);
+    if (artifact) {
+      canvasStore.setArtifact(messageId, {
+        ...artifact,
+        code: {
+          ...artifact.code,
+          content: code,
+        },
+        updatedAt: new Date(),
+      });
+    }
+  };
 
   // ==================== 模型配置 ====================
   // 从 localStorage 读取保存的模型,如果没有则使用默认值
@@ -175,6 +213,18 @@ export default function ChatPage() {
               </div>
             </div>
           </main>
+
+          {/* Canvas 面板 - 当可见时占据右侧 */}
+          {isCanvasVisible && (
+            <div className='w-[600px] lg:w-[800px] shrink-0 border-l border-gray-200 dark:border-gray-700'>
+              <CanvasPanel
+                artifact={activeArtifact}
+                isVisible={isCanvasVisible}
+                onClose={handleCloseCanvas}
+                onUpdateCode={handleUpdateCode}
+              />
+            </div>
+          )}
         </div>
       </div>
     </ProtectedRoute>

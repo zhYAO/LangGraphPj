@@ -233,8 +233,8 @@ export async function createLangChainTools(
       continue
     }
 
-    if (toolConfig.type === 'mcp') {
-      continue // MCP 工具统一处理
+    if (toolConfig.type === 'mcp' || toolConfig.type === 'canvas') {
+      continue;
     }
 
     if (toolConfig.langChainTool) {

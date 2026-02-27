@@ -16,6 +16,7 @@ import { createModel } from './utils/models'
 import { createLangChainTools } from './utils/tools'
 import { supabase } from '../database/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { getCanvasSystemPrompt, getToolUsagePrompt, generateArtifactId } from '@/app/canvas/canvas-prompt';
 
 // 全局缓存：存储 workflow 与匿名编译后的 app
 // 使用 any 避免 CompiledStateGraph 复杂类型推断问题
@@ -38,12 +39,26 @@ async function createWorkflow(modelId?: string, toolIds?: string[]) {
 
   // 绑定工具到模型
   const modelWithTools = tools.length > 0 ? model.bindTools(tools) : model
+  // 是否启用 canvas 工具
+  const canvasEnabled = toolIds?.includes('canvas') ?? false;
+  const hasSelectedTools = (toolIds?.length ?? 0) > 0;
 
   // 聊天节点：处理用户输入并生成回复
   async function chatbotNode(state: typeof MessagesAnnotation.State) {
     try {
       // 将系统消息添加到消息数组开头
-      const messagesWithSystem = [...state.messages]
+      let messagesWithSystem = [...state.messages]
+
+      if (canvasEnabled) {
+        const artifactId = generateArtifactId();
+        const canvasSystemPrompt = getCanvasSystemPrompt(artifactId);
+        const systemMessage = new SystemMessage(canvasSystemPrompt);
+        messagesWithSystem = [systemMessage, ...messagesWithSystem];
+      } else if (hasSelectedTools) {
+        const toolUsagePrompt = getToolUsagePrompt();
+        const toolUsageMessage = new SystemMessage(toolUsagePrompt);
+        messagesWithSystem = [toolUsageMessage, ...messagesWithSystem];
+      }
 
       const response = await modelWithTools.invoke(messagesWithSystem)
       console.log('模型响应成功，类型:', response._getType?.())

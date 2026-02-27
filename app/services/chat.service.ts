@@ -121,6 +121,7 @@ export class ChatService {
     input: ChatMessageInput,
     threadId: string,
     isNewSession: boolean,
+    signal?: AbortSignal
   ): AsyncGenerator<any, void, unknown> {
     // 解析用户消息
     const userMessage = this.parseUserMessage(input.message)

@@ -1,6 +1,10 @@
 import { useCallback, useMemo, useEffect, useRef } from 'react'
 import type { Message, ToolCall } from '../components/MessageBubble'
 import { streamPost } from '@/app/utils/api'
+import { getCanvasParser } from '@/app/canvas/CanvasArtifactParser'
+import { canvasStore } from '@/app/hooks/useCanvasArtifacts'
+import type { CanvasArtifact } from '@/app/canvas/canvas-types'
+import { saveArtifactToDb } from '@/app/utils/artifacts'
 
 /**
  * 消息发送 Hook 的参数接口
@@ -17,8 +21,19 @@ interface UseSendMessageParams {
   fetchSessions: () => void // 重新获取会话列表
   updateToolCalls: (messageId: string, toolCalls: ToolCall[]) => void // 更新工具调用
   addToolCall: (messageId: string, toolCall: ToolCall) => void // 添加工具调用
-  updateToolResult: (messageId: string, toolName: string, output: any) => void // 更新工具结果
-  updateToolError: (messageId: string, toolName: string, error: string) => void // 更新工具错误
+  updateToolResult: (messageId: string, toolName: string, output: any, toolCallId?: string) => void // 更新工具结果
+  updateToolError: (messageId: string, toolName: string, error: string, toolCallId?: string) => void // 更新工具错误
+}
+
+/**
+ * 保存 artifact 到数据库（通过 API）
+ */
+async function persistArtifactToDb(artifact: CanvasArtifact) {
+  try {
+    await saveArtifactToDb(artifact)
+  } catch (error) {
+    console.error('保存 artifact 到数据库时出错:', error)
+  }
 }
 
 /**
@@ -52,10 +67,91 @@ export function useSendMessage({
   updateToolError,
 }: UseSendMessageParams) {
   const sessionIdRef = useRef(sessionId)
+  const abortControllerRef = useRef<AbortController | null>(null)
+  const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null)
+  const currentAssistantIdRef = useRef<string | null>(null)
 
   useEffect(() => {
     sessionIdRef.current = sessionId
   }, [sessionId])
+
+  // 使用 useMemo 创建 Canvas 解析器实例并设置回调（只初始化一次）
+  const canvasParser = useMemo(() => {
+    const parser = getCanvasParser()
+
+    parser.setCallbacks({
+      onArtifactStart: (metadata) => {
+        // 创建 artifact 数据
+        canvasStore.setArtifact(metadata.messageId, {
+          id: metadata.id,
+          type: metadata.type,
+          title: metadata.title,
+          code: { language: 'jsx', content: '' },
+          status: 'creating',
+          isStreaming: true,
+          messageId: metadata.messageId,
+          sessionId: sessionIdRef.current,
+          currentVersion: 1,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+
+        // 自动打开右侧 Canvas 面板并激活当前 artifact（打开到编辑器模式）
+        canvasStore.setActiveArtifactId(metadata.id)
+        canvasStore.setIsCanvasVisible(true, 'editor') // 🎯 打开到编辑器模式
+      },
+
+      onCodeUpdate: (data) => {
+        // 🔥 实时更新代码内容（流式累积）
+        const artifact = canvasStore.getArtifact(data.messageId, data.artifactId)
+        if (artifact) {
+          canvasStore.setArtifact(data.messageId, {
+            ...artifact,
+            code: {
+              language: data.language,
+              content: data.content,
+            },
+            updatedAt: new Date(),
+          })
+        }
+      },
+
+      onCodeComplete: (data) => {
+        // onCodeComplete 已经被 onArtifactComplete 取代
+        // 这里不再需要更新，避免重复
+      },
+
+      onArtifactComplete: (artifact) => {
+        // 更新 store
+        const existing = canvasStore.getArtifact(artifact.messageId, artifact.id)
+        const currentVersion = existing ? existing.currentVersion + 1 : 1
+        const updatedArtifact = {
+          id: artifact.id,
+          type: artifact.type,
+          title: artifact.title,
+          code: artifact.code,
+          config: artifact.config,
+          status: 'ready' as const,
+          isStreaming: false,
+          messageId: artifact.messageId,
+          sessionId: sessionIdRef.current,
+          currentVersion,
+          createdAt: existing?.createdAt || new Date(),
+          updatedAt: new Date(),
+        }
+        canvasStore.setArtifact(artifact.messageId, updatedArtifact)
+
+        // 保存到数据库
+        persistArtifactToDb(updatedArtifact)
+      },
+
+      onError: (error) => {
+        console.error('[CanvasCallback] ❌ onError 触发:', error)
+      },
+    })
+
+    return parser
+  }, []) // 空依赖数组，只初始化一次
 
   /**
    * 发送消息并处理响应
@@ -104,19 +200,19 @@ export function useSendMessage({
 
             imageData.push({
               data: base64,
-              mimeType: image.type,
+              mimeType: image.type
             })
           }
 
           // 构建多模态内容数组
           messageContent = [
             { type: 'text', text: input },
-            ...imageData.map((img) => ({
+            ...imageData.map(img => ({
               type: 'image_url',
               image_url: {
-                url: `data:${img.mimeType};base64,${img.data}`,
-              },
-            })),
+                url: `data:${img.mimeType};base64,${img.data}`
+              }
+            }))
           ]
         }
 
@@ -126,96 +222,109 @@ export function useSendMessage({
         // 3. 创建 AI 消息占位符
         const assistantMessage = addAssistantMessage()
 
-        // 4. 发送请求到 API
+        // 4. 创建 AbortController 用于取消请求
+        const abortController = new AbortController()
+        abortControllerRef.current = abortController
+        currentAssistantIdRef.current = assistantMessage.id!
+
+        // 5. 发送请求到 API
         const response = await streamPost('/api/chat', {
-          message: messageContent, // 发送文本或多模态内容
+          message: messageContent,
           thread_id: sessionIdRef.current,
           tools: selectedTools,
-          model: selectedModel,
-        })
+          model: selectedModel
+        }, { signal: abortController.signal })
 
-        // 5. 处理流式响应
+        // 6. 处理流式响应
         const reader = response.body?.getReader()
         if (!reader) {
           throw new Error('无法读取响应流')
         }
+        readerRef.current = reader
 
         const decoder = new TextDecoder()
-        let buffer = '' // 缓冲区,处理跨块的 JSON
-        let newSessionId: string | null = null // 记录新创建的会话 ID
+        let buffer = ''
+        let newSessionId: string | null = null
+        let canvasFullContent = ''
 
-        // 6. 逐块读取响应流
+        const parseSseEvents = (raw: string) => {
+          const chunks = raw.split('\n')
+          const remainder = chunks.pop() || ''
+          const events: Array<{ name: string; data: any }> = []
+
+          for (const chunk of chunks) {
+            const lines = chunk.split('\n').map((line) => line.trim())
+            if (lines.length === 0) {
+              continue
+            }
+            let eventName = 'message'
+            const dataLines: string[] = []
+            for (const line of lines) {
+              if (line.startsWith('event:')) {
+                eventName = line.slice(6).trim()
+              } else if (line.startsWith('data:')) {
+                dataLines.push(line.slice(5).trim())
+              }
+            }
+            if (dataLines.length === 0) {
+              continue
+            }
+            const dataStr = dataLines.join('\n')
+            try {
+              const data = JSON.parse(dataStr)
+              events.push({ name: eventName, data })
+            } catch (parseError) {
+              console.error('解析流数据错误:', parseError)
+            }
+          }
+          return { events, remainder }
+        }
+
         while (true) {
           const { done, value } = await reader.read()
           if (done) break
 
-          // 解码二进制数据为文本
           buffer += decoder.decode(value, { stream: true })
+          const parsed = parseSseEvents(buffer)
+          buffer = parsed.remainder
 
-          // 按行分割(每行是一个 JSON 对象)
-          const lines = buffer.split('\n')
-          buffer = lines.pop() || '' // 保留不完整的行到缓冲区
+          for (const event of parsed.events) {
+            const data = event.data
+            const payloadType = data.type ?? event.name
 
-          // 处理每一行
-          for (const line of lines) {
-            if (line.trim()) {
-              try {
-                const data = JSON.parse(line)
-
-                // 处理新会话 ID
-                if (data.type === 'session' && data.thread_id) {
-                  newSessionId = data.thread_id
-                  sessionIdRef.current = newSessionId
-                  setSessionId(newSessionId, true)
-                  // 收到新会话 ID 时立即刷新右侧会话列表
-                  fetchSessions()
-                }
-                // 处理内容片段
-                else if (data.type === 'chunk' && data.content) {
-                  // 正常更新消息内容
-                  updateMessageContent(assistantMessage.id!, data.content)
-                }
-                // 处理工具调用
-                else if (data.type === 'tool_calls' && data.tool_calls) {
-                  updateToolCalls(assistantMessage.id!, data.tool_calls)
-                }
-                // 处理工具执行结果
-                else if (data.type === 'tool_result' && data.name) {
-                  // 兼容新旧格式：优先使用 data.data.output，降级到 data.output
-                  const output = data.data?.output ?? data.output
-                  updateToolResult(assistantMessage.id!, data.name, output)
-                }
-                // 处理工具执行错误
-                else if (data.type === 'tool_error' && data.name) {
-                  // 兼容新旧格式：优先使用 data.data.error，降级到 data.error
-                  const error =
-                    data.data?.error?.message || data.data?.error || data.error
-                  console.error('工具执行错误:', data.name, error)
-                  updateToolError(
-                    assistantMessage.id!,
-                    data.name,
-                    error || '未知错误',
-                  )
-                }
-                // 流结束
-                else if (data.type === 'end') {
-                  // 从最终消息中提取工具调用信息(如果有)
-                  if (data.message && data.message.tool_calls) {
-                    updateToolCalls(
-                      assistantMessage.id!,
-                      data.message.tool_calls,
-                    )
-                  }
-                  finishStreaming(assistantMessage.id!)
-                  break
-                }
-                // 服务器错误
-                else if (data.type === 'error') {
-                  throw new Error(data.message || '服务器错误')
-                }
-              } catch (parseError) {
-                console.error('解析流数据错误:', parseError)
+            if (payloadType === 'session' && data.thread_id) {
+              const threadId = data.thread_id as string
+              newSessionId = threadId
+              sessionIdRef.current = threadId
+              setSessionId(threadId, true)
+              fetchSessions()
+            } else if ((payloadType === 'chunk' || event.name === 'message.delta') && data.content) {
+              canvasFullContent += data.content
+              const canvasEnabled = selectedTools?.includes('canvas') ?? false
+              if (canvasEnabled) {
+                canvasParser.parse(assistantMessage.id!, data.content)
               }
+              updateMessageContent(assistantMessage.id!, data.content)
+            } else if ((payloadType === 'tool_calls' || event.name === 'tool.calls') && data.tool_calls) {
+              updateToolCalls(assistantMessage.id!, data.tool_calls)
+            } else if ((payloadType === 'tool_result' || event.name === 'tool.result') && data.name) {
+              const output = data.data?.output ?? data.output
+              const toolCallId = data.tool_call_id ?? data.data?.tool_call_id
+              updateToolResult(assistantMessage.id!, data.name, output, toolCallId)
+            } else if ((payloadType === 'tool_error' || event.name === 'tool.error') && data.name) {
+              const error = data.data?.error?.message || data.data?.error || data.error
+              const toolCallId = data.tool_call_id ?? data.data?.tool_call_id
+              console.error('工具执行错误:', data.name, error)
+              updateToolError(assistantMessage.id!, data.name, error || '未知错误', toolCallId)
+            } else if (payloadType === 'end' || event.name === 'end') {
+              const toolCalls = data.message?.tool_calls ?? data.message?.data?.tool_calls
+              if (toolCalls) {
+                updateToolCalls(assistantMessage.id!, toolCalls)
+              }
+              finishStreaming(assistantMessage.id!)
+              break
+            } else if (payloadType === 'error' || event.name === 'error') {
+              throw new Error(data.message || '服务器错误')
             }
           }
         }
@@ -224,12 +333,20 @@ export function useSendMessage({
         if (newSessionId) {
           setSessionId(newSessionId, false)
         }
+
       } catch (error) {
-        // 7. 错误处理
-        console.error('发送消息时出错:', error)
-        addErrorMessage()
+        if (error instanceof Error && error.name === 'AbortError') {
+          if (currentAssistantIdRef.current) {
+            finishStreaming(currentAssistantIdRef.current)
+          }
+        } else {
+          console.error('发送消息时出错:', error)
+          addErrorMessage()
+        }
       } finally {
-        // 8. 清理加载状态
+        abortControllerRef.current = null
+        readerRef.current = null
+        currentAssistantIdRef.current = null
         setIsLoading(false)
       }
     },
@@ -249,5 +366,14 @@ export function useSendMessage({
     ],
   )
 
-  return { sendMessage }
+  const stopGeneration = useCallback(() => {
+    if (readerRef.current) {
+      readerRef.current.cancel()
+    }
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+  }, [])
+
+  return { sendMessage, stopGeneration }
 }

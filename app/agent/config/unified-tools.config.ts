@@ -66,6 +66,16 @@ export const unifiedToolsConfig: UnifiedToolConfig[] = [
     },
   },
 
+  // ==================== Canvas 功能 ====================
+  {
+    id: 'canvas',
+    name: 'Canvas',
+    description: '启用 Canvas 组件生成功能，AI 可以创建可交互的 React 组件',
+    icon: '🎨',
+    enabled: true,
+    type: 'canvas',
+  },
+
   // ==================== MCP 工具 ====================
   {
     id: 'sequential-thinking',
