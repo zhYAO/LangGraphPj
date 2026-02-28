@@ -21,7 +21,6 @@ interface CanvasPanelProps {
 }
 
 export function CanvasPanel({ artifact, isVisible, onClose, onUpdateCode }: CanvasPanelProps) {
-  console.log("🚀 ~ CanvasPanel ~ artifact:", artifact)
   const [code, setCode] = useState('');
   const [activeTab, setActiveTab] = useState<'editor' | 'preview'>('preview');
   const [executionStatus, setExecutionStatus] = useState<CanvasStatus>('ready');

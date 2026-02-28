@@ -5,21 +5,21 @@
  * 使用 Babel Standalone 转译 JSX
  */
 
-'use client';
+'use client'
 
-import { useRef, useEffect, useCallback, useState } from 'react';
-import { AlertCircle } from 'lucide-react';
-import type { CanvasArtifact, CanvasStatus } from '../../canvas/canvas-types';
+import { useRef, useEffect, useCallback, useState } from 'react'
+import { AlertCircle } from 'lucide-react'
+import type { CanvasArtifact, CanvasStatus } from '../../canvas/canvas-types'
 
 interface CodePreviewPanelProps {
-  code: string;
-  artifact: CanvasArtifact;
-  activeTab: 'preview' | 'console' | 'error';
-  consoleOutput: string[];
-  executionError: string;
-  onStatusChange: (status: CanvasStatus) => void;
-  onConsoleOutput: (logs: string[]) => void;
-  onError: (error: string) => void;
+  code: string
+  artifact: CanvasArtifact
+  activeTab: 'preview' | 'console' | 'error'
+  consoleOutput: string[]
+  executionError: string
+  onStatusChange: (status: CanvasStatus) => void
+  onConsoleOutput: (logs: string[]) => void
+  onError: (error: string) => void
 }
 
 /**
@@ -51,11 +51,11 @@ function generateIframeHTML(code: string, icons: string[] = []): string {
         className: className,
         dangerouslySetInnerHTML: { __html: svg }
       });
-    };`;
+    };`
       })
       .join('\n    ')}
   `
-      : '';
+      : ''
 
   return `<!DOCTYPE html>
 <html>
@@ -96,7 +96,29 @@ function generateIframeHTML(code: string, icons: string[] = []): string {
 
   <script type="text/babel">
     // 解构 React hooks
-    const { useState, useEffect, useRef, useMemo, useCallback } = React;
+    const { 
+      useState, 
+      useEffect, 
+      useContext, 
+      useReducer, 
+      useCallback, 
+      useMemo, 
+      useRef, 
+      useImperativeHandle, 
+      useLayoutEffect, 
+      createContext,
+      isValidElement,
+      Children,
+      cloneElement,
+      Component,
+      PureComponent,
+      memo,
+      forwardRef,
+      lazy,
+      Suspense,
+      Fragment,
+      StrictMode
+    } = React;
 
     // 劫持 console
     const consoleMethods = ['log', 'info', 'warn', 'error'];
@@ -208,42 +230,38 @@ function generateIframeHTML(code: string, icons: string[] = []): string {
     }
   </script>
 </body>
-</html>`;
+</html>`
 }
 
 /**
  * 提取 lucide-react 导入并清理代码
  */
 function sanitizeCode(code: string): { sanitized: string; icons: string[] } {
-  const icons: string[] = [];
+  const icons: string[] = []
+  let sanitized = code
 
-  // 保留原始代码，不去除空白
-  let sanitized = code;
-
-  // 提取 lucide-react 导入的图标名称
+  // 1. 提取 lucide-react 导入的图标名称
   const lucideImportMatch = sanitized.match(
-    /import\s*\{([^}]+)\}\s+from\s+['"]lucide-react['"];?/
-  );
+    /import\s+\{([^}]+)\}\s+from\s+['"]lucide-react['"];?/,
+  )
+
   if (lucideImportMatch) {
     const importedIcons = lucideImportMatch[1]
       .split(',')
       .map((s) => s.trim())
-      .filter((s) => s.length > 0);
-    icons.push(...importedIcons);
+      .filter((s) => s.length > 0)
+    icons.push(...importedIcons)
   }
 
-  // 移除 import React 语句
-  sanitized = sanitized.replace(
-    /import\s+React\s*,?\s*\{[^}]*\}\s+from\s+['"]react['"];\s*/g,
-    ''
-  );
-  // 移除其他 lucide-react import
-  sanitized = sanitized.replace(
-    /import\s*\{[^}]*\}\s+from\s+['"]lucide-react['"];\s*/g,
-    ''
-  );
+  // 2. 移除所有 import 语句，防止 "Cannot use import statement" 错误
 
-  return { sanitized, icons };
+  // 移除 import ... from ... (包括多行)
+  sanitized = sanitized.replace(/import\s+[\s\S]*?from\s+['"][^'"]+['"];?/g, '')
+
+  // 移除 import "..." (副作用导入)
+  sanitized = sanitized.replace(/import\s+['"][^'"]+['"];?/g, '')
+
+  return { sanitized, icons }
 }
 
 export function CodePreviewPanel({
@@ -256,136 +274,157 @@ export function CodePreviewPanel({
   onConsoleOutput,
   onError,
 }: CodePreviewPanelProps) {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const [reloadKey, setReloadKey] = useState(0);
-  const [isReady, setIsReady] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null)
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const [reloadKey, setReloadKey] = useState(0)
+  const [isReady, setIsReady] = useState(false)
 
   // 监听来自 iframe 的消息
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       // 安全检查：实际项目中应该验证 event.origin
-      const data = event.data;
+      const data = event.data
 
       if (data.type === 'canvas:ready') {
         // 清除超时定时器
         if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-          timeoutRef.current = null;
+          clearTimeout(timeoutRef.current)
+          timeoutRef.current = null
         }
-        setIsReady(true);
-        onStatusChange('ready');
+        setIsReady(true)
+        onStatusChange('ready')
       } else if (data.type === 'canvas:console') {
-        const newLogs = [...consoleOutput, `[${data.level}] ${data.message}`];
-        onConsoleOutput(newLogs.slice(-50)); // 保留最近 50 条
+        const newLogs = [...consoleOutput, `[${data.level}] ${data.message}`]
+        onConsoleOutput(newLogs.slice(-50)) // 保留最近 50 条
       } else if (data.type === 'canvas:error') {
-        onStatusChange('error');
-        onError(data.error);
+        onStatusChange('error')
+        onError(data.error)
       }
-    };
+    }
 
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, [consoleOutput, onStatusChange, onConsoleOutput, onError]);
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
+  }, [consoleOutput, onStatusChange, onConsoleOutput, onError])
 
   // 更新 iframe 内容
   useEffect(() => {
-    const iframe = iframeRef.current;
-    if (!iframe) return;
+    const iframe = iframeRef.current
+    if (!iframe) return
 
     // 如果还在流式传输中，不执行代码
     if (artifact.isStreaming) {
-      onStatusChange('streaming');
-      return;
+      onStatusChange('streaming')
+      return
     }
 
     // 检查代码是否包含 export default（避免执行不完整的代码）
     if (!code.includes('export default')) {
-      onStatusChange('streaming');
-      return;
+      onStatusChange('streaming')
+      return
     }
 
     // 清除之前的超时
     if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
     }
 
-    setIsReady(false);
-    onStatusChange('executing');
+    setIsReady(false)
+    onStatusChange('executing')
 
-    const { sanitized: sanitizedCode, icons } = sanitizeCode(code);
-    const html = generateIframeHTML(sanitizedCode, icons);
+    const { sanitized: sanitizedCode, icons } = sanitizeCode(code)
+    const html = generateIframeHTML(sanitizedCode, icons)
 
-    iframe.srcdoc = html;
+    iframe.srcdoc = html
 
     // 超时检测
     timeoutRef.current = setTimeout(() => {
-      onStatusChange('error');
-      onError('代码执行超时（5秒），可能存在无限循环或语法错误');
-    }, 5000);
+      onStatusChange('error')
+      onError('代码执行超时（5秒），可能存在无限循环或语法错误')
+    }, 5000)
 
     return () => {
       if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
+        clearTimeout(timeoutRef.current)
+        timeoutRef.current = null
       }
-    };
-  }, [code, reloadKey, artifact.id, artifact.isStreaming, onStatusChange, onError]); // eslint-disable-line react-hooks/exhaustive-deps
+    }
+  }, [
+    code,
+    reloadKey,
+    artifact.id,
+    artifact.isStreaming,
+    onStatusChange,
+    onError,
+  ]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 处理重新加载
   const handleReload = useCallback(() => {
-    setReloadKey((prev) => prev + 1);
-    onConsoleOutput([]);
-    onError('');
-  }, [onConsoleOutput, onError]);
+    setReloadKey((prev) => prev + 1)
+    onConsoleOutput([])
+    onError('')
+  }, [onConsoleOutput, onError])
 
   // 获取控制台日志样式类名
   const getLogClassName = (log: string): string => {
-    let classes = 'py-1 px-2 rounded text-xs font-mono break-all ';
-    if (log.startsWith('[error]')) return classes + 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 my-1';
-    if (log.startsWith('[warn]')) return classes + 'text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-900/30 my-1';
-    if (log.startsWith('[info]')) return classes + 'text-blue-600 dark:text-blue-400';
-    return classes + 'text-slate-600 dark:text-slate-400 border-b border-black/5 dark:border-white/5 last:border-0';
-  };
+    let classes = 'py-1 px-2 rounded text-xs font-mono break-all '
+    if (log.startsWith('[error]'))
+      return (
+        classes +
+        'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 my-1'
+      )
+    if (log.startsWith('[warn]'))
+      return (
+        classes +
+        'text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-900/30 my-1'
+      )
+    if (log.startsWith('[info]'))
+      return classes + 'text-blue-600 dark:text-blue-400'
+    return (
+      classes +
+      'text-slate-600 dark:text-slate-400 border-b border-black/5 dark:border-white/5 last:border-0'
+    )
+  }
 
   // 渲染预览内容
   const renderContent = () => {
     if (activeTab === 'preview') {
       return (
-        <div className='flex-1 relative bg-white dark:bg-black w-full h-full'>
+        <div className="relative h-full w-full flex-1 bg-white dark:bg-black">
           <iframe
             key={`${artifact.id}-${reloadKey}`}
             ref={iframeRef}
-            sandbox='allow-scripts allow-same-origin allow-modals'
-            className='w-full h-full border-0 block'
-            title='Canvas Preview'
+            sandbox="allow-scripts allow-same-origin allow-modals"
+            className="block h-full w-full border-0"
+            title="Canvas Preview"
           />
-          {/* 加载状态 - Apple 风格加载指示器 */}
+          {/* 加载状态 */}
           {!isReady && (
-            <div className='absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-black/50 backdrop-blur-sm transition-opacity duration-300'>
-              <div className='flex flex-col items-center gap-3 p-4 rounded-2xl bg-white/80 dark:bg-[#2c2c2e]/80 backdrop-blur-xl shadow-xl border border-black/5 dark:border-white/10'>
-                <div className='w-6 h-6 border-2 border-slate-300 dark:border-slate-600 border-t-blue-500 rounded-full animate-spin' />
-                <span className='text-xs font-medium text-slate-600 dark:text-slate-300'>正在渲染...</span>
+            <div className="absolute inset-0 flex items-center justify-center bg-white/50 backdrop-blur-sm transition-opacity duration-300 dark:bg-black/50">
+              <div className="flex flex-col items-center gap-3 rounded-2xl border border-black/5 bg-white/80 p-4 shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-[#2c2c2e]/80">
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-300 border-t-blue-500 dark:border-slate-600" />
+                <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                  正在渲染...
+                </span>
               </div>
             </div>
           )}
         </div>
-      );
+      )
     }
 
     if (activeTab === 'console') {
       return (
-        <div className='flex-1 bg-[#f5f5f7] dark:bg-[#1e1e1e] p-4 overflow-auto'>
+        <div className="flex-1 overflow-auto bg-[#f5f5f7] p-4 dark:bg-[#1e1e1e]">
           {consoleOutput.length === 0 ? (
-            <div className='flex flex-col items-center justify-center h-full text-slate-400 dark:text-slate-500 gap-2'>
-              <div className='w-12 h-12 rounded-xl bg-black/5 dark:bg-white/5 flex items-center justify-center'>
-                <span className='text-xl'>⌨️</span>
+            <div className="flex h-full flex-col items-center justify-center gap-2 text-slate-400 dark:text-slate-500">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-black/5 dark:bg-white/5">
+                <span className="text-xl">⌨️</span>
               </div>
-              <span className='text-sm font-medium'>暂无控制台输出</span>
+              <span className="text-sm font-medium">暂无控制台输出</span>
             </div>
           ) : (
-            <div className='flex flex-col gap-0.5'>
+            <div className="flex flex-col gap-0.5">
               {consoleOutput.map((log, index) => (
                 <div key={index} className={getLogClassName(log)}>
                   {log}
@@ -394,50 +433,54 @@ export function CodePreviewPanel({
             </div>
           )}
         </div>
-      );
+      )
     }
 
     if (activeTab === 'error') {
       return (
-        <div className='flex-1 bg-red-50/50 dark:bg-red-900/10 p-6 overflow-auto flex items-center justify-center'>
-          <div className='w-full max-w-lg bg-white dark:bg-[#2c2c2e] rounded-2xl shadow-xl border border-red-100 dark:border-red-900/30 overflow-hidden'>
-            <div className='p-6'>
-              <div className='flex items-center gap-3 mb-4'>
-                <div className='w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0'>
-                  <AlertCircle className='w-5 h-5 text-red-600 dark:text-red-400' />
+        <div className="flex flex-1 items-center justify-center overflow-auto bg-red-50/50 p-6 dark:bg-red-900/10">
+          <div className="w-full max-w-lg overflow-hidden rounded-2xl border border-red-100 bg-white shadow-xl dark:border-red-900/30 dark:bg-[#2c2c2e]">
+            <div className="p-6">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
+                  <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
                 </div>
                 <div>
-                  <h3 className='font-semibold text-slate-900 dark:text-slate-100'>执行错误</h3>
-                  <p className='text-xs text-slate-500 dark:text-slate-400'>代码执行过程中发生了异常</p>
+                  <h3 className="font-semibold text-slate-900 dark:text-slate-100">
+                    执行错误
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    代码执行过程中发生了异常
+                  </p>
                 </div>
               </div>
-              
-              <div className='bg-red-50 dark:bg-black/30 rounded-xl p-4 border border-red-100 dark:border-red-900/20 overflow-auto max-h-60'>
-                <pre className='text-xs font-mono text-red-700 dark:text-red-300 whitespace-pre-wrap break-all leading-relaxed'>
+
+              <div className="max-h-60 overflow-auto rounded-xl border border-red-100 bg-red-50 p-4 dark:border-red-900/20 dark:bg-black/30">
+                <pre className="font-mono text-xs leading-relaxed break-all whitespace-pre-wrap text-red-700 dark:text-red-300">
                   {executionError}
                 </pre>
               </div>
             </div>
-            
-            <div className='px-6 py-4 bg-slate-50 dark:bg-black/20 border-t border-slate-100 dark:border-white/5 flex justify-end'>
+
+            <div className="flex justify-end border-t border-slate-100 bg-slate-50 px-6 py-4 dark:border-white/5 dark:bg-black/20">
               <button
                 onClick={handleReload}
-                className='px-4 py-2 bg-white dark:bg-[#3a3a3c] text-slate-900 dark:text-white text-sm font-medium rounded-lg shadow-sm border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-[#48484a] active:scale-95 transition-all duration-200'
+                className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition-all duration-200 hover:bg-slate-50 active:scale-95 dark:border-white/10 dark:bg-[#3a3a3c] dark:text-white dark:hover:bg-[#48484a]"
               >
                 重新加载
               </button>
             </div>
           </div>
         </div>
-      );
+      )
     }
 
-    return null;
-  };
+    return null
+  }
 
   return (
-    <div className='flex-1 flex flex-col overflow-hidden h-full'>
+    <div className="flex h-full flex-1 flex-col overflow-hidden">
       {renderContent()}
     </div>
-  );
+  )
 }
