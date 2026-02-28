@@ -342,19 +342,18 @@ export function CodePreviewPanel({
 
   // 获取控制台日志样式类名
   const getLogClassName = (log: string): string => {
-    let classes = '';
-    if (log.startsWith('[error]')) classes += 'text-red-300 ';
-    if (log.startsWith('[warn]')) classes += 'text-yellow-300 ';
-    if (log.startsWith('[info]')) classes += 'text-blue-300 ';
-    if (log.startsWith('[log]')) classes += 'text-slate-400 ';
-    return classes;
+    let classes = 'py-1 px-2 rounded text-xs font-mono break-all ';
+    if (log.startsWith('[error]')) return classes + 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 my-1';
+    if (log.startsWith('[warn]')) return classes + 'text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-900/30 my-1';
+    if (log.startsWith('[info]')) return classes + 'text-blue-600 dark:text-blue-400';
+    return classes + 'text-slate-600 dark:text-slate-400 border-b border-black/5 dark:border-white/5 last:border-0';
   };
 
   // 渲染预览内容
   const renderContent = () => {
     if (activeTab === 'preview') {
       return (
-        <div className='flex-1 relative bg-[#0F172A]'>
+        <div className='flex-1 relative bg-white dark:bg-black w-full h-full'>
           <iframe
             key={`${artifact.id}-${reloadKey}`}
             ref={iframeRef}
@@ -362,12 +361,12 @@ export function CodePreviewPanel({
             className='w-full h-full border-0 block'
             title='Canvas Preview'
           />
-          {/* 加载状态 */}
+          {/* 加载状态 - Apple 风格加载指示器 */}
           {!isReady && (
-            <div className='absolute inset-0 flex items-center justify-center bg-[#0F172A]/80 backdrop-blur-sm'>
-              <div className='flex flex-col items-center gap-2'>
-                <div className='w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin' />
-                <span className='text-sm text-slate-400'>正在渲染...</span>
+            <div className='absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-black/50 backdrop-blur-sm transition-opacity duration-300'>
+              <div className='flex flex-col items-center gap-3 p-4 rounded-2xl bg-white/80 dark:bg-[#2c2c2e]/80 backdrop-blur-xl shadow-xl border border-black/5 dark:border-white/10'>
+                <div className='w-6 h-6 border-2 border-slate-300 dark:border-slate-600 border-t-blue-500 rounded-full animate-spin' />
+                <span className='text-xs font-medium text-slate-600 dark:text-slate-300'>正在渲染...</span>
               </div>
             </div>
           )}
@@ -377,13 +376,16 @@ export function CodePreviewPanel({
 
     if (activeTab === 'console') {
       return (
-        <div className='flex-1 bg-[#0F172A] p-4 overflow-auto font-mono text-sm'>
+        <div className='flex-1 bg-[#f5f5f7] dark:bg-[#1e1e1e] p-4 overflow-auto'>
           {consoleOutput.length === 0 ? (
-            <div className='text-slate-500 text-center py-8'>
-              暂无控制台输出
+            <div className='flex flex-col items-center justify-center h-full text-slate-400 dark:text-slate-500 gap-2'>
+              <div className='w-12 h-12 rounded-xl bg-black/5 dark:bg-white/5 flex items-center justify-center'>
+                <span className='text-xl'>⌨️</span>
+              </div>
+              <span className='text-sm font-medium'>暂无控制台输出</span>
             </div>
           ) : (
-            <div className='space-y-1'>
+            <div className='flex flex-col gap-0.5'>
               {consoleOutput.map((log, index) => (
                 <div key={index} className={getLogClassName(log)}>
                   {log}
@@ -397,19 +399,30 @@ export function CodePreviewPanel({
 
     if (activeTab === 'error') {
       return (
-        <div className='flex-1 bg-red-950/30 p-4 overflow-auto'>
-          <div className='flex items-start gap-3'>
-            <div className='p-2 bg-red-500/20 rounded-lg border border-red-500/30'>
-              <AlertCircle className='w-5 h-5 text-red-300' />
+        <div className='flex-1 bg-red-50/50 dark:bg-red-900/10 p-6 overflow-auto flex items-center justify-center'>
+          <div className='w-full max-w-lg bg-white dark:bg-[#2c2c2e] rounded-2xl shadow-xl border border-red-100 dark:border-red-900/30 overflow-hidden'>
+            <div className='p-6'>
+              <div className='flex items-center gap-3 mb-4'>
+                <div className='w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0'>
+                  <AlertCircle className='w-5 h-5 text-red-600 dark:text-red-400' />
+                </div>
+                <div>
+                  <h3 className='font-semibold text-slate-900 dark:text-slate-100'>执行错误</h3>
+                  <p className='text-xs text-slate-500 dark:text-slate-400'>代码执行过程中发生了异常</p>
+                </div>
+              </div>
+              
+              <div className='bg-red-50 dark:bg-black/30 rounded-xl p-4 border border-red-100 dark:border-red-900/20 overflow-auto max-h-60'>
+                <pre className='text-xs font-mono text-red-700 dark:text-red-300 whitespace-pre-wrap break-all leading-relaxed'>
+                  {executionError}
+                </pre>
+              </div>
             </div>
-            <div className='flex-1'>
-              <h3 className='font-semibold text-red-300 mb-2'>执行错误</h3>
-              <pre className='text-sm text-red-200 whitespace-pre-wrap font-mono'>
-                {executionError}
-              </pre>
+            
+            <div className='px-6 py-4 bg-slate-50 dark:bg-black/20 border-t border-slate-100 dark:border-white/5 flex justify-end'>
               <button
                 onClick={handleReload}
-                className='mt-4 px-4 py-2 bg-red-600/30 text-red-200 border border-red-500/30 rounded-lg hover:bg-red-600/40 transition-colors text-sm'
+                className='px-4 py-2 bg-white dark:bg-[#3a3a3c] text-slate-900 dark:text-white text-sm font-medium rounded-lg shadow-sm border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-[#48484a] active:scale-95 transition-all duration-200'
               >
                 重新加载
               </button>

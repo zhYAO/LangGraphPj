@@ -216,7 +216,7 @@ export default function ChatPage() {
 
           {/* Canvas 面板 - 当可见时占据右侧 */}
           {isCanvasVisible && (
-            <div className='w-[600px] lg:w-[800px] shrink-0 border-l border-gray-200 dark:border-gray-700'>
+            <div className='w-[300px] lg:w-[400px] shrink-0 border-l border-gray-200 dark:border-gray-700'>
               <CanvasPanel
                 artifact={activeArtifact}
                 isVisible={isCanvasVisible}

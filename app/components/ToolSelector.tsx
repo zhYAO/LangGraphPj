@@ -52,10 +52,10 @@ export default function ToolSelector({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-2 rounded-lg px-3 py-2 transition-all duration-200 ${
+        className={`flex items-center gap-2 rounded-lg px-3 py-2 transition-all duration-200 hover:bg-black/5 hover:text-black cursor-pointer ${
           selectedTools.length > 0
-            ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md'
-            : 'text-slate-400 hover:bg-black/5 hover:text-black'
+            ? 'text-black/80 shadow-md'
+            : 'text-slate-400'
         } `}
         title="选择工具"
       >
@@ -74,7 +74,7 @@ export default function ToolSelector({
         </svg>
         <span className="text-sm font-medium">工具</span>
         {selectedTools.length > 0 && (
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-xs">
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-black/10 text-xs">
             {selectedTools.length}
           </span>
         )}
@@ -82,7 +82,7 @@ export default function ToolSelector({
 
       {/* 下拉菜单 */}
       {isOpen && (
-        <div className="animate-slide-up absolute bottom-full left-0 mb-2 w-64 overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-2xl backdrop-blur-xl">
+        <div className="animate-slide-up absolute bottom-full left-0 mb-2 w-64 overflow-hidden rounded-2xl border border-white bg-white shadow-2xl backdrop-blur-xl">
           <div className="border-b border-black/5 bg-black/5 p-3">
             <span className="text-xs font-semibold tracking-wider text-gray-500 uppercase">
               可用工具
@@ -95,7 +95,7 @@ export default function ToolSelector({
                 onClick={() => handleToolClick(tool.id)}
                 className={`group flex w-full items-center justify-between rounded-xl px-3 py-2.5 transition-all duration-200 ${
                   selectedTools.includes(tool.id)
-                    ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20'
+                    ? 'bg-gray-300 shadow-lg shadow-gray-300/20'
                     : 'text-gray-600 hover:bg-black/5'
                 }`}
               >
@@ -116,7 +116,7 @@ export default function ToolSelector({
                     <div
                       className={`mt-1 text-[10px] ${
                         selectedTools.includes(tool.id)
-                          ? 'text-white/70'
+                          ? ''
                           : 'text-gray-400'
                       }`}
                     >
