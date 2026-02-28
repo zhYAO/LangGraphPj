@@ -340,8 +340,8 @@ export function CodePreviewPanel({
     // 超时检测
     timeoutRef.current = setTimeout(() => {
       onStatusChange('error')
-      onError('代码执行超时（5秒），可能存在无限循环或语法错误')
-    }, 5000)
+      onError('代码执行超时（15秒），可能存在无限循环或语法错误')
+    }, 15000)
 
     return () => {
       if (timeoutRef.current) {
