@@ -8,6 +8,8 @@ import rehypeRaw from 'rehype-raw'
 import 'highlight.js/styles/github-dark.css'
 import { CanvasTitleCard } from './canvas/CanvasTitleCard';
 import { canvasStore } from '../hooks/useCanvasArtifacts';
+import { VideoCard } from './VideoCard';
+import { ImageCard } from './ImageCard';
 
 interface MarkdownRendererProps {
   content: string
@@ -78,6 +80,33 @@ export function MarkdownRenderer({
                 key={artifactId}
                 artifact={displayArtifact}
                 onOpen={handleOpenArtifact}
+              />
+            );
+          },
+          // @ts-ignore - 自定义 HTML 标签
+          videocard: ({ node, ...props }: any) => {
+            return (
+              <VideoCard
+                key={props.src || 'video-loading'}
+                status={props.status || 'loading'}
+                src={props.src}
+                download={props.download}
+                duration={props.duration}
+                resolution={props.resolution}
+                prompt={props.prompt}
+              />
+            );
+          },
+          // @ts-ignore - 自定义 HTML 标签
+          imagecard: ({ node, ...props }: any) => {
+            return (
+              <ImageCard
+                key={props.src || 'image-loading'}
+                status={props.status || 'loading'}
+                src={props.src}
+                download={props.download}
+                prompt={props.prompt}
+                aspectRatio={props.aspectratio}
               />
             );
           },

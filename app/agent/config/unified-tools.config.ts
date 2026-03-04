@@ -2,6 +2,8 @@ import type { UnifiedToolConfig } from '../types/tool.types'
 import { calculatorTool } from '../tools/calculator.tool'
 import { weatherTool } from '../tools/weather.tool'
 import { currentTimeTool } from '../tools/current-time.tool'
+import { googleImageGenerationTool } from '../tools/google-image-generation.tool';
+import { googleVideoGenerationTool } from '../tools/google-video-generation.tool';
 
 /**
  * 统一工具配置
@@ -42,6 +44,26 @@ export const unifiedToolsConfig: UnifiedToolConfig[] = [
     type: 'custom',
     schema: currentTimeTool.schema,
     handler: currentTimeTool.handler,
+  },
+  {
+    id: 'google_image_generation',
+    name: 'Google 图片生成',
+    description: '使用 Google Gemini 生成图片并返回外链',
+    icon: '🎨',
+    enabled: true,
+    type: 'custom',
+    schema: googleImageGenerationTool.schema,
+    handler: googleImageGenerationTool.handler,
+  },
+  {
+    id: 'google_video_generation',
+    name: 'Google 视频生成',
+    description: '使用 Google Veo 3.1 生成视频，支持 8-60 秒时长',
+    icon: '🎬',
+    enabled: true,
+    type: 'custom',
+    schema: googleVideoGenerationTool.schema,
+    handler: googleVideoGenerationTool.handler,
   },
 
   // ==================== LangChain 预构建工具 ====================
