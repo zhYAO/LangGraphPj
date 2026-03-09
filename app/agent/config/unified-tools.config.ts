@@ -2,8 +2,8 @@ import type { UnifiedToolConfig } from '../types/tool.types'
 import { calculatorTool } from '../tools/calculator.tool'
 import { weatherTool } from '../tools/weather.tool'
 import { currentTimeTool } from '../tools/current-time.tool'
-import { googleImageGenerationTool } from '../tools/google-image-generation.tool';
-import { googleVideoGenerationTool } from '../tools/google-video-generation.tool';
+import { googleImageGenerationTool } from '../tools/google-image-generation.tool'
+import { googleVideoGenerationTool } from '../tools/google-video-generation.tool'
 
 /**
  * 统一工具配置
@@ -14,37 +14,37 @@ import { googleVideoGenerationTool } from '../tools/google-video-generation.tool
  */
 export const unifiedToolsConfig: UnifiedToolConfig[] = [
   // ==================== 自定义工具 ====================
-  {
-    id: 'calculator',
-    name: '计算器',
-    description: '执行数学计算，支持基本运算和复杂表达式',
-    icon: '🔢',
-    enabled: true,
-    type: 'custom',
-    schema: calculatorTool.schema,
-    handler: calculatorTool.handler,
-  },
-  {
-    id: 'weather',
-    name: '天气查询',
-    description: '查询指定城市的天气信息',
-    icon: '🌤️',
-    enabled: true,
-    type: 'custom',
-    schema: weatherTool.schema,
-    handler: weatherTool.handler,
-    options: weatherTool.options,
-  },
-  {
-    id: 'current_time',
-    name: '当前时间',
-    description: '获取当前日期和时间',
-    icon: '🕐',
-    enabled: true,
-    type: 'custom',
-    schema: currentTimeTool.schema,
-    handler: currentTimeTool.handler,
-  },
+  // {
+  //   id: 'calculator',
+  //   name: '计算器',
+  //   description: '执行数学计算，支持基本运算和复杂表达式',
+  //   icon: '🔢',
+  //   enabled: true,
+  //   type: 'custom',
+  //   schema: calculatorTool.schema,
+  //   handler: calculatorTool.handler,
+  // },
+  // {
+  //   id: 'weather',
+  //   name: '天气查询',
+  //   description: '查询指定城市的天气信息',
+  //   icon: '🌤️',
+  //   enabled: true,
+  //   type: 'custom',
+  //   schema: weatherTool.schema,
+  //   handler: weatherTool.handler,
+  //   options: weatherTool.options,
+  // },
+  // {
+  //   id: 'current_time',
+  //   name: '当前时间',
+  //   description: '获取当前日期和时间',
+  //   icon: '🕐',
+  //   enabled: true,
+  //   type: 'custom',
+  //   schema: currentTimeTool.schema,
+  //   handler: currentTimeTool.handler,
+  // },
   {
     id: 'google_image_generation',
     name: 'Google 图片生成',
@@ -68,25 +68,25 @@ export const unifiedToolsConfig: UnifiedToolConfig[] = [
 
   // ==================== LangChain 预构建工具 ====================
   // 工具列表: https://docs.langchain.com/oss/javascript/integrations/tools
-  {
-    id: 'tavily',
-    name: 'Tavily 搜索',
-    description: '使用 Tavily API 进行真实网络搜索',
-    icon: '🌐',
-    enabled: true,
-    type: 'langchain',
-    langChainTool: {
-      importPath: '@langchain/tavily',
-      className: 'TavilySearch',
-      options: {
-        maxResults: 5,
-        searchDepth: 'basic',
-        includeAnswer: true,
-        includeRawContent: false,
-        includeImages: false,
-      },
-    },
-  },
+  // {
+  //   id: 'tavily',
+  //   name: 'Tavily 搜索',
+  //   description: '使用 Tavily API 进行真实网络搜索',
+  //   icon: '🌐',
+  //   enabled: true,
+  //   type: 'langchain',
+  //   langChainTool: {
+  //     importPath: '@langchain/tavily',
+  //     className: 'TavilySearch',
+  //     options: {
+  //       maxResults: 5,
+  //       searchDepth: 'basic',
+  //       includeAnswer: true,
+  //       includeRawContent: false,
+  //       includeImages: false,
+  //     },
+  //   },
+  // },
 
   // ==================== Canvas 功能 ====================
   {
@@ -99,20 +99,20 @@ export const unifiedToolsConfig: UnifiedToolConfig[] = [
   },
 
   // ==================== MCP 工具 ====================
-  {
-    id: 'sequential-thinking',
-    name: '顺序思考',
-    description: '通过结构化的思考过程帮助 AI 解决复杂问题',
-    icon: '🧠',
-    enabled: true,
-    type: 'mcp',
-    mcpServer: 'server-sequential-thinking',
-    mcpConfig: {
-      command: 'npx',
-      args: ['-y', '@modelcontextprotocol/server-sequential-thinking'],
-      transport: 'stdio',
-    },
-  },
+  // {
+  //   id: 'sequential-thinking',
+  //   name: '顺序思考',
+  //   description: '通过结构化的思考过程帮助 AI 解决复杂问题',
+  //   icon: '🧠',
+  //   enabled: true,
+  //   type: 'mcp',
+  //   mcpServer: 'server-sequential-thinking',
+  //   mcpConfig: {
+  //     command: 'npx',
+  //     args: ['-y', '@modelcontextprotocol/server-sequential-thinking'],
+  //     transport: 'stdio',
+  //   },
+  // },
   // {
   //   id: 'filesystem',
   //   name: '文件系统',
